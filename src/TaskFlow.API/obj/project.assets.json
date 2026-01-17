@@ -3894,19 +3894,19 @@
     ]
   },
   "packageFolders": {
-    "/Users/akshay.gawari/.nuget/packages/": {}
+    "C:\\Users\\aksha\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.API/TaskFlow.API.csproj",
+      "projectUniqueName": "D:\\Code\\CSharpCode\\TaskFlow\\src\\TaskFlow.API\\TaskFlow.API.csproj",
       "projectName": "TaskFlow.API",
-      "projectPath": "/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.API/TaskFlow.API.csproj",
-      "packagesPath": "/Users/akshay.gawari/.nuget/packages/",
-      "outputPath": "/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.API/obj/",
+      "projectPath": "D:\\Code\\CSharpCode\\TaskFlow\\src\\TaskFlow.API\\TaskFlow.API.csproj",
+      "packagesPath": "C:\\Users\\aksha\\.nuget\\packages\\",
+      "outputPath": "D:\\Code\\CSharpCode\\TaskFlow\\src\\TaskFlow.API\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/akshay.gawari/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\aksha\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
@@ -3918,11 +3918,11 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Application/TaskFlow.Application.csproj": {
-              "projectPath": "/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Application/TaskFlow.Application.csproj"
+            "D:\\Code\\CSharpCode\\TaskFlow\\src\\TaskFlow.Application\\TaskFlow.Application.csproj": {
+              "projectPath": "D:\\Code\\CSharpCode\\TaskFlow\\src\\TaskFlow.Application\\TaskFlow.Application.csproj"
             },
-            "/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/TaskFlow.Infrastructure.csproj": {
-              "projectPath": "/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/TaskFlow.Infrastructure.csproj"
+            "D:\\Code\\CSharpCode\\TaskFlow\\src\\TaskFlow.Infrastructure\\TaskFlow.Infrastructure.csproj": {
+              "projectPath": "D:\\Code\\CSharpCode\\TaskFlow\\src\\TaskFlow.Infrastructure\\TaskFlow.Infrastructure.csproj"
             }
           }
         }
@@ -3993,7 +3993,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.100/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

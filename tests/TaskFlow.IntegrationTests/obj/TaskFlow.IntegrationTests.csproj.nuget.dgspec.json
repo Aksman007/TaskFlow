@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/tests/TaskFlow.IntegrationTests/TaskFlow.IntegrationTests.csproj": {}
+    "D:\\Code\\CSharpCode\\TaskFlow\\tests\\TaskFlow.IntegrationTests\\TaskFlow.IntegrationTests.csproj": {}
   },
   "projects": {
-    "/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/tests/TaskFlow.IntegrationTests/TaskFlow.IntegrationTests.csproj": {
+    "D:\\Code\\CSharpCode\\TaskFlow\\tests\\TaskFlow.IntegrationTests\\TaskFlow.IntegrationTests.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/tests/TaskFlow.IntegrationTests/TaskFlow.IntegrationTests.csproj",
+        "projectUniqueName": "D:\\Code\\CSharpCode\\TaskFlow\\tests\\TaskFlow.IntegrationTests\\TaskFlow.IntegrationTests.csproj",
         "projectName": "TaskFlow.IntegrationTests",
-        "projectPath": "/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/tests/TaskFlow.IntegrationTests/TaskFlow.IntegrationTests.csproj",
-        "packagesPath": "/Users/akshay.gawari/.nuget/packages/",
-        "outputPath": "/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/tests/TaskFlow.IntegrationTests/obj/",
+        "projectPath": "D:\\Code\\CSharpCode\\TaskFlow\\tests\\TaskFlow.IntegrationTests\\TaskFlow.IntegrationTests.csproj",
+        "packagesPath": "C:\\Users\\aksha\\.nuget\\packages\\",
+        "outputPath": "D:\\Code\\CSharpCode\\TaskFlow\\tests\\TaskFlow.IntegrationTests\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/akshay.gawari/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\aksha\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
@@ -99,7 +99,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.100/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
