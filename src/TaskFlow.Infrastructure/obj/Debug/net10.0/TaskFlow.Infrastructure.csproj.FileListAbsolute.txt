@@ -1,0 +1,17 @@
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/bin/Debug/net10.0/TaskFlow.Infrastructure.deps.json
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/bin/Debug/net10.0/TaskFlow.Infrastructure.runtimeconfig.json
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/bin/Debug/net10.0/TaskFlow.Infrastructure.dll
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/bin/Debug/net10.0/TaskFlow.Infrastructure.pdb
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/bin/Debug/net10.0/TaskFlow.Core.dll
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/bin/Debug/net10.0/TaskFlow.Core.pdb
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/obj/Debug/net10.0/TaskFlow.Infrastructure.csproj.AssemblyReference.cache
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/obj/Debug/net10.0/TaskFlow.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/obj/Debug/net10.0/TaskFlow.Infrastructure.AssemblyInfoInputs.cache
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/obj/Debug/net10.0/TaskFlow.Infrastructure.AssemblyInfo.cs
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/obj/Debug/net10.0/TaskFlow.Infrastructure.csproj.CoreCompileInputs.cache
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/obj/Debug/net10.0/TaskFlow.635E8F59.Up2Date
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/obj/Debug/net10.0/TaskFlow.Infrastructure.dll
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/obj/Debug/net10.0/refint/TaskFlow.Infrastructure.dll
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/obj/Debug/net10.0/TaskFlow.Infrastructure.pdb
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/obj/Debug/net10.0/TaskFlow.Infrastructure.genruntimeconfig.cache
+/Users/akshay.gawari/Desktop/Projects/SelfProjects/TaskFlow/src/TaskFlow.Infrastructure/obj/Debug/net10.0/ref/TaskFlow.Infrastructure.dll
