@@ -1,5 +1,6 @@
-using Microsoft.EntityFrameworkCore;
+using TaskFlow.Infrastructure;
 using TaskFlow.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,15 +9,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// PostgreSQL Configuration
-builder.Services.AddDbContext<TaskFlowDbContext>(options =>
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        npgsqlOptions => npgsqlOptions.MigrationsAssembly("TaskFlow.Infrastructure")
-    ));
-
-// MongoDB Configuration
-builder.Services.AddSingleton<MongoDbContext>();
+// Add Infrastructure services (repositories, database contexts)
+builder.Services.AddInfrastructure(builder.Configuration);
 
 // CORS
 builder.Services.AddCors(options =>
@@ -30,6 +24,21 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Test database connection
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<TaskFlowDbContext>();
+    try
+    {
+        await dbContext.Database.CanConnectAsync();
+        Console.WriteLine("✅ Database connected successfully!");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Database connection failed: {ex.Message}");
+    }
+}
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
