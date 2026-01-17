@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>SignalR Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@latest/dist/browser/signalr.min.js"></script>
+</head>
+
+<body>
+    <h1>TaskFlow SignalR Test</h1>
+
+    <div>
+        <label>JWT Token:</label><br>
+        <input type="text" id="token" style="width: 500px" placeholder="Paste your JWT token here">
+    </div>
+
+    <div>
+        <label>Project ID:</label><br>
+        <input type="text" id="projectId" placeholder="Enter project GUID">
+        <button onclick="joinProject()">Join Project</button>
+    </div>
+
+    <div id="status">Status: Disconnected</div>
+    <div id="messages"
+        style="margin-top: 20px; border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: scroll;"></div>
+
+    <script>
+        let connection;
+
+        function log(message) {
+            const messages = document.getElementById('messages');
+            const time = new Date().toLocaleTimeString();
+            messages.innerHTML += `<div>[${time}] ${message}</div>`;
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function connect() {
+            const token = document.getElementById('token').value;
+
+            if (!token) {
+                alert('Please enter a JWT token');
+                return;
+            }
+
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl(`https://localhost:5030/hubs/tasks?access_token=${token}`)
+                .withAutomaticReconnect()
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            // Event listeners
+            connection.on("TaskCreated", (task) => {
+                log(`✅ Task Created: ${task.title}`);
+                console.log('Task:', task);
+            });
+
+            connection.on("TaskUpdated", (task) => {
+                log(`🔄 Task Updated: ${task.title}`);
+                console.log('Task:', task);
+            });
+
+            connection.on("TaskDeleted", (taskId) => {
+                log(`❌ Task Deleted: ${taskId}`);
+            });
+
+            connection.on("CommentAdded", (taskId, comment) => {
+                log(`💬 Comment Added: ${comment.content.substring(0, 50)}...`);
+                console.log('Comment:', comment);
+            });
+
+            connection.on("UserJoined", (data) => {
+                log(`👋 ${data.userName} joined the project`);
+            });
+
+            connection.on("UserLeft", (data) => {
+                log(`👋 ${data.userName} left the project`);
+            });
+
+            // Connection lifecycle
+            connection.onclose(() => {
+                document.getElementById('status').textContent = 'Status: Disconnected';
+                log('❌ Disconnected from SignalR');
+            });
+
+            connection.onreconnecting(() => {
+                document.getElementById('status').textContent = 'Status: Reconnecting...';
+                log('🔄 Reconnecting...');
+            });
+
+            connection.onreconnected(() => {
+                document.getElementById('status').textContent = 'Status: Connected';
+                log('✅ Reconnected!');
+            });
+
+            // Start connection
+            connection.start()
+                .then(() => {
+                    document.getElementById('status').textContent = 'Status: Connected';
+                    log('✅ Connected to SignalR Hub!');
+                })
+                .catch(err => {
+                    log(`❌ Error: ${err}`);
+                    console.error(err);
+                });
+        }
+
+        function joinProject() {
+            const projectId = document.getElementById('projectId').value;
+
+            if (!connection) {
+                connect();
+                setTimeout(() => joinProject(), 2000);
+                return;
+            }
+
+            connection.invoke("JoinProject", projectId)
+                .then(() => log(`✅ Joined project: ${projectId}`))
+                .catch(err => log(`❌ Error joining project: ${err}`));
+        }
+
+        // Auto-connect on load if token is present
+        window.onload = () => {
+            const token = document.getElementById('token').value;
+            if (token) {
+                connect();
+            }
+        };
+    </script>
+</body>
+
+</html>
