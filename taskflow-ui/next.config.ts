@@ -1,36 +1,68 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // API proxy configuration
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: 'https://localhost:5030/api/:path*',
+        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5030/api'}/:path*`,
       },
     ];
   },
-  
-  // Disable SSL verification in development (for self-signed certificates)
-  webpack: (config, { dev, isServer }) => {
-    if (dev && !isServer) {
-      // Allow self-signed certificates in development
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-    }
-    return config;
+
+  // Headers for CORS and security
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Credentials', value: 'true' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,PATCH,POST,PUT' },
+          { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization' },
+        ],
+      },
+    ];
   },
-  
-  // Enable strict mode
+
+  // Turbopack configuration with CSS handling
+  turbopack: {
+    resolveAlias: {
+      // Fix Tailwind CSS resolution
+      'tailwindcss/plugin': 'tailwindcss/plugin.js',
+    },
+  },
+
+  // React strict mode
   reactStrictMode: true,
-  
-  // Image optimization config (optional)
+
+  // TypeScript strict mode
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+
+  // ESLint configuration
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+
+  // Image optimization config
   images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'localhost',
-        port: '5030',
+        port: '5001',
       },
     ],
+  },
+
+  // Experimental features
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
   },
 };
 

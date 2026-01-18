@@ -15,7 +15,11 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
-
+const handleLogout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  window.location.href = '/login';
+};
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="px-4 sm:px-6 lg:px-8">
@@ -44,7 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="gap-2"
                 >
                   <ArrowRightOnRectangleIcon className="h-5 w-5" />

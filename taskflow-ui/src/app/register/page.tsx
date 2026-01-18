@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
-import { useAuth } from '@/lib/hooks/useAuth';
+import { authApi } from '@/lib/api/auth';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 
@@ -23,7 +23,6 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const { register: registerUser } = useAuth();
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -39,13 +38,26 @@ export default function RegisterPage() {
     try {
       setIsLoading(true);
       setError('');
-      await registerUser({
+      
+      const result = await authApi.register({
         fullName: data.fullName,
         email: data.email,
         password: data.password,
       });
+      
+      if (result.success && result.token && result.user) {
+        // Save to localStorage
+        localStorage.setItem('token', result.token);
+        localStorage.setItem('user', JSON.stringify(result.user));
+        
+        // Force hard redirect
+        window.location.href = '/dashboard';
+      } else {
+        setError(result.error || 'Registration failed');
+      }
     } catch (err: any) {
-      setError(err.message || 'Registration failed. Please try again.');
+      console.error('Registration error:', err);
+      setError(err.response?.data?.error || err.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

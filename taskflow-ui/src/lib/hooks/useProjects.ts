@@ -40,5 +40,6 @@ export const useProject = (id: string) => {
     queryKey: ['project', id],
     queryFn: () => projectsApi.getById(id),
     enabled: !!id,
+    retry: 1,
   });
 };

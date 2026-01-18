@@ -11,24 +11,43 @@ export const useAuth = () => {
   const { user, token, isAuthenticated, setAuth, clearAuth } = useAuthStore();
 
   const login = async (data: LoginRequest) => {
-    const result = await authApi.login(data);
-    if (result.success && result.user && result.token) {
-      setAuth(result.user, result.token);
-      localStorage.setItem('token', result.token);
+  const result = await authApi.login(data);
+  if (result.success && result.user && result.token) {
+    setAuth(result.user, result.token);
+    
+    // Connect to SignalR
+    try {
       await signalRService.connect(result.token);
-      router.push('/');
-      return result;
+    } catch (error) {
+      console.error('SignalR connection error:', error);
     }
-    throw new Error(result.error || 'Login failed');
-  };
+    
+    // Use hard navigation as fallback
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
+    
+    return result;
+  }
+  throw new Error(result.error || 'Login failed');
+};
 
   const register = async (data: RegisterRequest) => {
     const result = await authApi.register(data);
     if (result.success && result.user && result.token) {
       setAuth(result.user, result.token);
-      localStorage.setItem('token', result.token);
-      await signalRService.connect(result.token);
+      
+      // Connect to SignalR
+      try {
+        await signalRService.connect(result.token);
+      } catch (error) {
+        console.error('SignalR connection error:', error);
+      }
+      
+      // Navigate to dashboard
       router.push('/');
+      router.refresh();
+      
       return result;
     }
     throw new Error(result.error || 'Registration failed');
@@ -36,9 +55,9 @@ export const useAuth = () => {
 
   const logout = async () => {
     await signalRService.disconnect();
-    localStorage.removeItem('token');
     clearAuth();
     router.push('/login');
+    router.refresh();
   };
 
   return {

@@ -13,7 +13,7 @@ class SignalRService {
       return;
     }
 
-    const hubUrl = process.env.NEXT_PUBLIC_HUB_URL || 'https://localhost:5030/hubs/tasks';
+    const hubUrl = process.env.NEXT_PUBLIC_HUB_URL || 'http://localhost:5030/hubs/tasks';
 
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl(hubUrl, {

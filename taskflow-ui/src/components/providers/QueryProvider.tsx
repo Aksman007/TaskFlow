@@ -1,14 +1,8 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
-
-// Lazy import devtools only in development
-const ReactQueryDevtools =
-  process.env.NODE_ENV === 'development'
-    ? require('@tanstack/react-query-devtools').ReactQueryDevtools
-    : () => null;
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(

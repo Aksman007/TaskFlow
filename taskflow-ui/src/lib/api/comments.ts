@@ -3,16 +3,16 @@ import { Comment, AddCommentRequest } from '../types';
 
 export const commentsApi = {
   getTaskComments: async (taskId: string): Promise<Comment[]> => {
-    const response = await apiClient.get<Comment[]>(`/comments/task/${taskId}`);
+    const response = await apiClient.get<Comment[]>(`/Comments/task/${taskId}`);
     return response.data;
   },
 
   add: async (data: AddCommentRequest): Promise<Comment> => {
-    const response = await apiClient.post<Comment>('/comments', data);
+    const response = await apiClient.post<Comment>('/Comments', data);
     return response.data;
   },
 
   delete: async (id: string): Promise<void> => {
-    await apiClient.delete(`/comments/${id}`);
+    await apiClient.delete(`/Comments/${id}`);
   },
 };

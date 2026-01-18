@@ -43,7 +43,7 @@
             }
 
             connection = new signalR.HubConnectionBuilder()
-                .withUrl(`https://localhost:5030/hubs/tasks?access_token=${token}`)
+                .withUrl(`http://localhost:5030/hubs/tasks?access_token=${token}`)
                 .withAutomaticReconnect()
                 .configureLogging(signalR.LogLevel.Information)
                 .build();

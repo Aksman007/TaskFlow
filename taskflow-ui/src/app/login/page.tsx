@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
-import { useAuth } from '@/lib/hooks/useAuth';
+import { authApi } from '@/lib/api/auth';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 
@@ -18,7 +18,6 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const { login } = useAuth();
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,9 +33,27 @@ export default function LoginPage() {
     try {
       setIsLoading(true);
       setError('');
-      await login(data);
+      
+      console.log('Attempting login...');
+      const result = await authApi.login(data);
+      
+      if (result.success && result.token && result.user) {
+        console.log('Login successful!');
+        
+        // Save to localStorage
+        localStorage.setItem('token', result.token);
+        localStorage.setItem('user', JSON.stringify(result.user));
+        
+        console.log('Token saved, redirecting...');
+        
+        // Force hard redirect
+        window.location.href = '/dashboard';
+      } else {
+        setError(result.error || 'Login failed');
+      }
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please try again.');
+      console.error('Login error:', err);
+      setError(err.response?.data?.error || err.message || 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -64,6 +81,7 @@ export default function LoginPage() {
               label="Email"
               type="email"
               placeholder="john@example.com"
+              autoComplete="email"
               error={errors.email?.message}
               {...register('email')}
             />
@@ -72,6 +90,7 @@ export default function LoginPage() {
               label="Password"
               type="password"
               placeholder="••••••••"
+              autoComplete="current-password"
               error={errors.password?.message}
               {...register('password')}
             />
@@ -97,13 +116,6 @@ export default function LoginPage() {
               </Link>
             </p>
           </div>
-        </div>
-
-        {/* Demo Credentials */}
-        <div className="mt-6 bg-white/50 backdrop-blur rounded-lg p-4 text-center">
-          <p className="text-sm text-gray-600">
-            <strong>Demo:</strong> demo@taskflow.com / Demo123!
-          </p>
         </div>
       </div>
     </div>
