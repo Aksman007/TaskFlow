@@ -4,15 +4,16 @@ import React from 'react';
 import { Task, TaskStatus } from '@/lib/types';
 import { TaskCard } from './TaskCard';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { useTasks } from '@/lib/hooks/useTasks';
 
 interface TaskColumnProps {
   status: TaskStatus;
   title: string;
   color: string;
   tasks: Task[];
+  allTasks: Task[];  // Add this - all tasks from all columns
   onTaskClick: (task: Task) => void;
   onCreateTask: () => void;
+  onTaskStatusChange: (taskId: string, newStatus: TaskStatus) => void;  // Add this
 }
 
 export const TaskColumn: React.FC<TaskColumnProps> = ({
@@ -20,10 +21,11 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
   title,
   color,
   tasks,
+  allTasks,
   onTaskClick,
   onCreateTask,
+  onTaskStatusChange,
 }) => {
-  const { updateTask } = useTasks(tasks[0]?.projectId || '');
   const [isDraggingOver, setIsDraggingOver] = React.useState(false);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -40,25 +42,25 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
     setIsDraggingOver(false);
 
     const taskId = e.dataTransfer.getData('taskId');
-    const task = tasks.find((t) => t.id === taskId);
+    
+    // Find the task from all tasks
+    const draggedTask = allTasks.find((t) => t.id === taskId);
 
-    if (!task || task.status === status) return;
-
-    try {
-      await updateTask({
-        id: taskId,
-        data: {
-          title: task.title,
-          description: task.description,
-          status: status,
-          priority: task.priority,
-          assignedToId: task.assignedToId,
-          dueDate: task.dueDate,
-        },
-      });
-    } catch (error) {
-      console.error('Failed to update task status:', error);
+    if (!draggedTask) {
+      console.error('Task not found:', taskId);
+      return;
     }
+
+    // Don't update if dropping in same column
+    if (draggedTask.status === status) {
+      console.log('Task already in this column');
+      return;
+    }
+
+    console.log('Dropping task:', taskId, 'to status:', status);
+    
+    // Call the callback to update task status
+    onTaskStatusChange(taskId, status);
   };
 
   return (

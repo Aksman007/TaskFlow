@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
 'use client';
 
@@ -11,7 +10,7 @@ import { useSignalR } from '@/lib/hooks/useSignalR';
 import { TaskBoard } from '@/components/tasks/TaskBoard';
 import { Spinner } from '@/components/common/Spinner';
 import { Button } from '@/components/common/Button';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -22,8 +21,7 @@ export default function ProjectPage({ params }: PageProps) {
   const { id } = use(params);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  console.log('Project Page - ID from params:', id);
-  console.log('Project Page - ID type:', typeof id);
+  console.log('Project Page Loaded - ID:', id);
 
   // Check authentication
   useEffect(() => {
@@ -111,14 +109,25 @@ export default function ProjectPage({ params }: PageProps) {
           Back to Projects
         </Button>
         
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-          <p className="text-gray-600 mt-2">{project.description}</p>
-          <div className="flex gap-4 mt-4 text-sm text-gray-600">
-            <span>{project.memberCount} members</span>
-            <span>•</span>
-            <span>{project.taskCount} tasks</span>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
+            <p className="text-gray-600 mt-2">{project.description}</p>
+            <div className="flex gap-4 mt-4 text-sm text-gray-600">
+              <span>{project.memberCount} members</span>
+              <span>•</span>
+              <span>{project.taskCount} tasks</span>
+            </div>
           </div>
+
+          <Button
+            variant="secondary"
+            onClick={() => router.push(`/dashboard/projects/${id}/members`)}
+            className="gap-2"
+          >
+            <UserGroupIcon className="h-5 w-5" />
+            Manage Team
+          </Button>
         </div>
       </div>
 

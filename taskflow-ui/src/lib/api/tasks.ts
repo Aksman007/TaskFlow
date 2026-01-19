@@ -6,7 +6,7 @@ export const tasksApi = {
   getProjectTasks: async (projectId: string): Promise<Task[]> => {
     console.log('API: Fetching tasks for project:', projectId);
     try {
-      const response = await apiClient.get<Task[]>(`/tasks/project/${projectId}`);
+      const response = await apiClient.get<Task[]>(`/Tasks/project/${projectId}`);
       console.log('API: Tasks fetched:', response.data.length, 'tasks');
       return response.data;
     } catch (error: any) {
@@ -22,7 +22,7 @@ export const tasksApi = {
 
   getById: async (id: string): Promise<Task> => {
     console.log('API: Fetching task by ID:', id);
-    const response = await apiClient.get<Task>(`/tasks/${id}`);
+    const response = await apiClient.get<Task>(`/Tasks/${id}`);
     console.log('API: Task fetched:', response.data);
     return response.data;
   },
@@ -30,7 +30,7 @@ export const tasksApi = {
   create: async (data: CreateTaskRequest): Promise<Task> => {
     console.log('API: Creating task with data:', data);
     try {
-      const response = await apiClient.post<Task>('/tasks', data);
+      const response = await apiClient.post<Task>('/Tasks', data);
       console.log('API: Task created:', response.data);
       return response.data;
     } catch (error: any) {
@@ -47,7 +47,7 @@ export const tasksApi = {
   update: async (id: string, data: UpdateTaskRequest): Promise<Task> => {
     console.log('API: Updating task:', id, 'with data:', data);
     try {
-      const response = await apiClient.put<Task>(`/tasks/${id}`, data);
+      const response = await apiClient.put<Task>(`/Tasks/${id}`, data);
       console.log('API: Task updated:', response.data);
       return response.data;
     } catch (error: any) {
@@ -65,7 +65,7 @@ export const tasksApi = {
   delete: async (id: string): Promise<void> => {
     console.log('API: Deleting task:', id);
     try {
-      await apiClient.delete(`/tasks/${id}`);
+      await apiClient.delete(`/Tasks/${id}`);
       console.log('API: Task deleted successfully');
     } catch (error: any) {
       console.error('API: Error deleting task:', {

@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Task, TaskStatus, TaskPriority } from '@/lib/types';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { Select } from '@/components/common/Select';
 import { CommentSection } from '@/components/comments/CommentSection';
 import { useTasks } from '@/lib/hooks/useTasks';
+import { usersApi } from '@/lib/api/users';
 import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 
@@ -14,6 +15,13 @@ interface TaskModalProps {
   task: Task;
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface ProjectMember {
+  id: string;
+  userName: string;
+    userId: string;
+    userEmail: string;
 }
 
 export const TaskModal: React.FC<TaskModalProps> = ({
@@ -25,6 +33,28 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [status, setStatus] = useState(task.status);
   const [priority, setPriority] = useState(task.priority);
+  const [assignedToId, setAssignedToId] = useState(task.assignedToId || '');
+  const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
+
+  // Load project members when modal opens
+  useEffect(() => {
+    if (isOpen && task.projectId) {
+      loadProjectMembers();
+    }
+  }, [isOpen, task.projectId]);
+
+  const loadProjectMembers = async () => {
+    try {
+      setLoadingMembers(true);
+      const members = await usersApi.getProjectMembers(task.projectId);
+      setProjectMembers(members);
+    } catch (error) {
+      console.error('Failed to load project members:', error);
+    } finally {
+      setLoadingMembers(false);
+    }
+  };
 
   const handleUpdateStatus = async (newStatus: TaskStatus) => {
     try {
@@ -59,6 +89,25 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         },
       });
       setPriority(newPriority);
+    } catch (error) {
+      console.error('Failed to update task:', error);
+    }
+  };
+
+  const handleUpdateAssignee = async (newAssignedToId: string) => {
+    try {
+      await updateTask({
+        id: task.id,
+        data: {
+          title: task.title,
+          description: task.description,
+          status: task.status,
+          priority: task.priority,
+          assignedToId: newAssignedToId || undefined,
+          dueDate: task.dueDate,
+        },
+      });
+      setAssignedToId(newAssignedToId);
     } catch (error) {
       console.error('Failed to update task:', error);
     }
@@ -108,27 +157,40 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           </p>
         </div>
 
-        {/* Status & Priority */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* Status, Priority, Assignee */}
+        <div className="grid grid-cols-3 gap-4">
           <Select
             label="Status"
-            value={status}
-            onChange={(e) => handleUpdateStatus(e.target.value as TaskStatus)}
+            value={status.toString()}
+            onChange={(e) => handleUpdateStatus(parseInt(e.target.value) as TaskStatus)}
             options={[
-              { value: TaskStatus.Todo, label: 'To Do' },
-              { value: TaskStatus.InProgress, label: 'In Progress' },
-              { value: TaskStatus.Done, label: 'Done' },
+              { value: TaskStatus.Todo.toString(), label: 'To Do' },
+              { value: TaskStatus.InProgress.toString(), label: 'In Progress' },
+              { value: TaskStatus.Done.toString(), label: 'Done' },
             ]}
           />
 
           <Select
             label="Priority"
-            value={priority}
-            onChange={(e) => handleUpdatePriority(e.target.value as TaskPriority)}
+            value={priority.toString()}
+            onChange={(e) => handleUpdatePriority(parseInt(e.target.value) as TaskPriority)}
             options={[
-              { value: TaskPriority.Low, label: 'Low' },
-              { value: TaskPriority.Medium, label: 'Medium' },
-              { value: TaskPriority.High, label: 'High' },
+              { value: TaskPriority.Low.toString(), label: 'Low' },
+              { value: TaskPriority.Medium.toString(), label: 'Medium' },
+              { value: TaskPriority.High.toString(), label: 'High' },
+            ]}
+          />
+
+          <Select
+            label="Assign To"
+            value={assignedToId}
+            onChange={(e) => handleUpdateAssignee(e.target.value)}
+            options={[
+              { value: '', label: 'Unassigned' },
+              ...projectMembers.map(member => ({
+                value: member.userId,
+                label: member.userName,
+              })),
             ]}
           />
         </div>

@@ -16,17 +16,20 @@ public class TasksController : BaseController
 {
     private readonly ITaskRepository _taskRepository;
     private readonly IProjectRepository _projectRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IHubContext<TaskHub> _hubContext;
     private readonly ILogger<TasksController> _logger;
 
     public TasksController(
         ITaskRepository taskRepository,
         IProjectRepository projectRepository,
+        IUserRepository userRepository,
         IHubContext<TaskHub> hubContext,
         ILogger<TasksController> logger)
     {
         _taskRepository = taskRepository;
         _projectRepository = projectRepository;
+        _userRepository = userRepository;
         _hubContext = hubContext;
         _logger = logger;
     }
@@ -70,8 +73,15 @@ public class TasksController : BaseController
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(TaskDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<TaskDto>> CreateTask([FromBody] CreateTaskRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         // Verify user is a member of the project
         var userId = GetCurrentUserId();
         var isMember = await _projectRepository.IsUserMemberAsync(request.ProjectId, userId);
@@ -79,6 +89,22 @@ public class TasksController : BaseController
         if (!isMember)
         {
             return Forbid();
+        }
+
+        // If assignedToId is provided, verify the user exists and is a member
+        if (request.AssignedToId.HasValue)
+        {
+            var assignedUser = await _userRepository.GetByIdAsync(request.AssignedToId.Value);
+            if (assignedUser == null)
+            {
+                return BadRequest(new { error = "Assigned user does not exist" });
+            }
+
+            var isAssigneeMember = await _projectRepository.IsUserMemberAsync(request.ProjectId, request.AssignedToId.Value);
+            if (!isAssigneeMember)
+            {
+                return BadRequest(new { error = "Cannot assign task to a user who is not a project member" });
+            }
         }
 
         var task = new TaskItem
@@ -91,7 +117,9 @@ public class TasksController : BaseController
             Status = Core.Enums.TaskStatus.Todo,
             Priority = request.Priority,
             CreatedAt = DateTime.UtcNow,
-            DueDate = request.DueDate
+            DueDate = request.DueDate.HasValue
+                ? DateTime.SpecifyKind(request.DueDate.Value, DateTimeKind.Utc)
+                : null
         };
 
         await _taskRepository.CreateAsync(task);
@@ -111,16 +139,24 @@ public class TasksController : BaseController
     }
 
     [HttpPut("{id}")]
+    [ProducesResponseType(typeof(TaskDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<TaskDto>> UpdateTask(Guid id, [FromBody] UpdateTaskRequest request)
     {
-        var task = await _taskRepository.GetByIdAsync(id);
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
 
+        var task = await _taskRepository.GetByIdAsync(id);
         if (task == null)
         {
             return NotFound(new { error = "Task not found" });
         }
 
-        // Check permissions
+        // Verify user is a member of the project
         var userId = GetCurrentUserId();
         var isMember = await _projectRepository.IsUserMemberAsync(task.ProjectId, userId);
 
@@ -129,17 +165,19 @@ public class TasksController : BaseController
             return Forbid();
         }
 
-        // Track status change for activity log
+        // Track if status changed
+        var statusChanged = task.Status != request.Status;
         var oldStatus = task.Status;
-        var statusChanged = oldStatus != request.Status;
 
-        // Update task
+        // Update task properties
         task.Title = request.Title;
         task.Description = request.Description ?? string.Empty;
         task.Status = request.Status;
         task.Priority = request.Priority;
         task.AssignedToId = request.AssignedToId;
-        task.DueDate = request.DueDate;
+        task.DueDate = request.DueDate.HasValue
+            ? DateTime.SpecifyKind(request.DueDate.Value, DateTimeKind.Utc)
+            : null;
 
         await _taskRepository.UpdateAsync(task);
 
@@ -152,22 +190,20 @@ public class TasksController : BaseController
             .Group($"project_{task.ProjectId}")
             .SendAsync("TaskUpdated", taskDto);
 
-        // If status changed, send additional notification
         if (statusChanged)
         {
             await _hubContext.Clients
                 .Group($"project_{task.ProjectId}")
                 .SendAsync("TaskStatusChanged", new
                 {
-                    TaskId = id,
-                    OldStatus = oldStatus.ToString(),
-                    NewStatus = request.Status.ToString(),
-                    ChangedBy = GetCurrentUserName(),
-                    Timestamp = DateTime.UtcNow
+                    taskId = task.Id,
+                    oldStatus = oldStatus.ToString(),
+                    newStatus = task.Status.ToString(),
+                    task = taskDto
                 });
         }
 
-        _logger.LogInformation("Task updated: {TaskId} by user {UserId}", id, userId);
+        _logger.LogInformation("Task updated: {TaskId} by user {UserId}", task.Id, userId);
 
         return Ok(taskDto);
     }

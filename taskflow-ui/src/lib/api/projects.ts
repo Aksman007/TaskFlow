@@ -12,21 +12,9 @@ export const projectsApi = {
 
   getById: async (id: string): Promise<Project> => {
     console.log('Fetching project by ID:', id);
-    console.log('Full URL:', `/Projects/${id}`);
-    
-    try {
-      const response = await apiClient.get<Project>(`/Projects/${id}`);
-      console.log('Project fetched:', response.data);
-      return response.data;
-    } catch (error: any) {
-      console.error('Error fetching project:', {
-        url: `/Projects/${id}`,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-      });
-      throw error;
-    }
+    const response = await apiClient.get<Project>(`/Projects/${id}`);
+    console.log('Project fetched:', response.data);
+    return response.data;
   },
 
   create: async (data: CreateProjectRequest): Promise<Project> => {
@@ -43,5 +31,36 @@ export const projectsApi = {
 
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/Projects/${id}`);
+  },
+
+  // Member management
+  getMembers: async (projectId: string): Promise<any[]> => {
+    console.log('Fetching project members:', projectId);
+    const response = await apiClient.get(`/Projects/${projectId}/members`);
+    console.log('Members fetched:', response.data);
+    return response.data;
+  },
+
+  addMember: async (
+    projectId: string,
+    email: string,
+    role: number
+  ): Promise<void> => {
+    console.log('Adding member:', { projectId, email, role });
+    await apiClient.post(`/Projects/${projectId}/members`, { email, role });
+  },
+
+  removeMember: async (projectId: string, memberId: string): Promise<void> => {
+    console.log('Removing member:', { projectId, memberId });
+    await apiClient.delete(`/Projects/${projectId}/members/${memberId}`);
+  },
+
+  updateMemberRole: async (
+    projectId: string,
+    memberId: string,
+    role: number
+  ): Promise<void> => {
+    console.log('Updating member role:', { projectId, memberId, role });
+    await apiClient.put(`/Projects/${projectId}/members/${memberId}`, { role });
   },
 };

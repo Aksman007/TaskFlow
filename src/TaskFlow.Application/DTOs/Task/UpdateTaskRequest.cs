@@ -16,7 +16,7 @@ public class UpdateTaskRequest
     public Core.Enums.TaskStatus Status { get; set; }
 
     [Required]
-    public Core.Enums.TaskPriority Priority { get; set; }
+    public TaskPriority Priority { get; set; }
 
     public Guid? AssignedToId { get; set; }
 

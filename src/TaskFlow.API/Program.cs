@@ -8,7 +8,7 @@ using TaskFlow.API.Middleware;
 using TaskFlow.Application;
 using TaskFlow.Infrastructure;
 using TaskFlow.Infrastructure.Data;
-
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container

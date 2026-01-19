@@ -5,6 +5,7 @@ import { Task, TaskStatus } from '@/lib/types';
 import { TaskColumn } from './TaskColumn';
 import { CreateTaskModal } from './CreateTaskModal';
 import { TaskModal } from './TaskModal';
+import { useTasks } from '@/lib/hooks/useTasks';
 
 interface TaskBoardProps {
   projectId: string;
@@ -12,6 +13,7 @@ interface TaskBoardProps {
 }
 
 export const TaskBoard: React.FC<TaskBoardProps> = ({ projectId, tasks }) => {
+  const { updateTask } = useTasks(projectId);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
@@ -25,6 +27,41 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ projectId, tasks }) => {
     return tasks.filter((task) => task.status === status);
   };
 
+  const handleTaskStatusChange = async (taskId: string, newStatus: TaskStatus) => {
+    const task = tasks.find(t => t.id === taskId);
+    
+    if (!task) {
+      console.error('Task not found for status change:', taskId);
+      return;
+    }
+
+    console.log('Updating task status:', {
+      taskId,
+      currentStatus: task.status,
+      newStatus,
+      task,
+    });
+
+    try {
+      await updateTask({
+        id: taskId,
+        data: {
+          title: task.title,
+          description: task.description || undefined,
+          status: newStatus,
+          priority: task.priority,
+          assignedToId: task.assignedToId || undefined,
+          dueDate: task.dueDate || undefined,
+        },
+      });
+      
+      console.log('Task status updated successfully');
+    } catch (error) {
+      console.error('Failed to update task status:', error);
+      alert('Failed to update task status');
+    }
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -35,8 +72,10 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ projectId, tasks }) => {
             title={column.title}
             color={column.color}
             tasks={getTasksByStatus(column.status)}
+            allTasks={tasks}
             onTaskClick={setSelectedTask}
             onCreateTask={() => setIsCreateModalOpen(true)}
+            onTaskStatusChange={handleTaskStatusChange}
           />
         ))}
       </div>

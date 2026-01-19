@@ -16,22 +16,42 @@ interface TaskCardProps {
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
+  const [isDragging, setIsDragging] = React.useState(false);
+
   const priorityColors = {
     [TaskPriority.Low]: 'text-green-600 bg-green-50',
     [TaskPriority.Medium]: 'text-yellow-600 bg-yellow-50',
     [TaskPriority.High]: 'text-red-600 bg-red-50',
   };
 
+  const priorityLabels = {
+    [TaskPriority.Low]: 'Low',
+    [TaskPriority.Medium]: 'Medium',
+    [TaskPriority.High]: 'High',
+  };
+
   const handleDragStart = (e: React.DragEvent) => {
+    console.log('Drag started for task:', task.id, task.title);
     e.dataTransfer.setData('taskId', task.id);
+    e.dataTransfer.effectAllowed = 'move';
+    setIsDragging(true);
+  };
+
+  const handleDragEnd = () => {
+    console.log('Drag ended for task:', task.id);
+    setIsDragging(false);
   };
 
   return (
     <div
       draggable
       onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       onClick={onClick}
-      className="task-card"
+      className={clsx(
+        'task-card',
+        isDragging && 'opacity-50 cursor-grabbing'
+      )}
     >
       {/* Priority & Title */}
       <div className="flex items-start justify-between mb-2">
@@ -43,6 +63,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
             'ml-2 p-1 rounded',
             priorityColors[task.priority]
           )}
+          title={priorityLabels[task.priority]}
         >
           <FlagIcon className="h-4 w-4" />
         </span>

@@ -25,15 +25,21 @@ export interface RegisterRequest {
 }
 
 export enum TaskStatus {
-  Todo = 'Todo',
-  InProgress = 'InProgress',
-  Done = 'Done',
+  Todo = 0,
+  InProgress = 1,
+  Done = 2,
 }
 
 export enum TaskPriority {
-  Low = 'Low',
-  Medium = 'Medium',
-  High = 'High',
+  Low = 0,
+  Medium = 1,
+  High = 2,
+}
+
+export enum ProjectRole { 
+    Viewer = 0,
+    Member = 1,
+    Admin = 2,
 }
 
 export interface Task {

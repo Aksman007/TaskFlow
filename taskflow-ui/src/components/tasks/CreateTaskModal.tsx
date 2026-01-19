@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,6 +11,7 @@ import { Select } from '@/components/common/Select';
 import { Button } from '@/components/common/Button';
 import { useTasks } from '@/lib/hooks/useTasks';
 import { TaskPriority } from '@/lib/types';
+import { usersApi } from '@/lib/api/users';
 
 interface CreateTaskModalProps {
   isOpen: boolean;
@@ -21,11 +22,19 @@ interface CreateTaskModalProps {
 const taskSchema = z.object({
   title: z.string().min(3, 'Task title must be at least 3 characters'),
   description: z.string().optional(),
-  priority: z.nativeEnum(TaskPriority),
+  priority: z.coerce.number().min(0).max(2),
+  assignedToId: z.string().optional(),
   dueDate: z.string().optional(),
 });
 
 type TaskFormData = z.infer<typeof taskSchema>;
+
+interface ProjectMember {
+  userName: string;
+    userEmail: string;
+    userId: string;
+  id: string;
+}
 
 export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   isOpen,
@@ -34,6 +43,8 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 }) => {
   const { createTask } = useTasks(projectId);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
 
   const {
     register,
@@ -47,17 +58,54 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     },
   });
 
+  // Load project members when modal opens
+  useEffect(() => {
+    if (isOpen && projectId) {
+      loadProjectMembers();
+    }
+  }, [isOpen, projectId]);
+
+  const loadProjectMembers = async () => {
+    try {
+      setLoadingMembers(true);
+      const members = await usersApi.getProjectMembers(projectId);
+      setProjectMembers(members);
+    } catch (error) {
+      console.error('Failed to load project members:', error);
+    } finally {
+      setLoadingMembers(false);
+    }
+  };
+
   const onSubmit = async (data: TaskFormData) => {
     try {
       setIsSubmitting(true);
-      await createTask({
-        ...data,
-        projectId,
+
+      console.log('Submitting task with data:', {
+        title: data.title,
+        description: data.description,
+        projectId: projectId,
+        priority: Number(data.priority),
+        assignedToId: data.assignedToId || undefined,
+        dueDate: data.dueDate,
       });
+
+      await createTask({
+        title: data.title,
+        description: data.description || undefined,
+        projectId: projectId,
+        priority: Number(data.priority) as TaskPriority,
+        assignedToId: data.assignedToId || undefined,
+        dueDate: data.dueDate || undefined,
+      });
+
+      console.log('Task created successfully');
       reset();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create task:', error);
+      console.error('Error response:', error.response?.data);
+      alert(`Failed to create task: ${error.response?.data?.title || error.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -86,23 +134,42 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
           rows={4}
         />
 
+        <div className="grid grid-cols-2 gap-4">
+          <Select
+            label="Priority"
+            error={errors.priority?.message}
+            options={[
+              { value: '0', label: 'Low' },
+              { value: '1', label: 'Medium' },
+              { value: '2', label: 'High' },
+            ]}
+            {...register('priority')}
+          />
+
+          <Input
+            label="Due Date"
+            type="date"
+            error={errors.dueDate?.message}
+            {...register('dueDate')}
+          />
+        </div>
+
         <Select
-          label="Priority"
-          error={errors.priority?.message}
+          label="Assign To"
+          error={errors.assignedToId?.message}
           options={[
-            { value: TaskPriority.Low, label: 'Low' },
-            { value: TaskPriority.Medium, label: 'Medium' },
-            { value: TaskPriority.High, label: 'High' },
+            { value: '', label: 'Unassigned' },
+            ...projectMembers.map(member => ({
+              value: member.userId,
+              label: `${member.userName} (${member.userEmail})`,
+            })),
           ]}
-          {...register('priority')}
+          {...register('assignedToId')}
         />
 
-        <Input
-          label="Due Date"
-          type="date"
-          error={errors.dueDate?.message}
-          {...register('dueDate')}
-        />
+        {loadingMembers && (
+          <p className="text-sm text-gray-500">Loading team members...</p>
+        )}
 
         <div className="flex justify-end gap-3">
           <Button type="button" variant="secondary" onClick={handleClose}>

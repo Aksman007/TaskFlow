@@ -20,6 +20,19 @@ public class TaskFlowDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Configure all DateTime properties to use UTC
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTime) || property.ClrType == typeof(DateTime?))
+                {
+                    property.SetColumnType("timestamp with time zone");
+                }
+            }
+        }
+
+
         // User configuration
         modelBuilder.Entity<User>(entity =>
         {
