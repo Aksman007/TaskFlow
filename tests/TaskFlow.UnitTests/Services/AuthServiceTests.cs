@@ -4,6 +4,7 @@ using Moq;
 using TaskFlow.Application.DTOs.Auth;
 using TaskFlow.Application.Services;
 using TaskFlow.Core.Entities;
+using TaskFlow.Core.Interfaces;
 using TaskFlow.Core.Interfaces.Repositories;
 
 namespace TaskFlow.UnitTests.Services;
@@ -11,6 +12,7 @@ namespace TaskFlow.UnitTests.Services;
 public class AuthServiceTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IRefreshTokenRepository> _refreshTokenRepositoryMock;
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly AuthService _authService;
 
@@ -21,11 +23,16 @@ public class AuthServiceTests
     public AuthServiceTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
+        _refreshTokenRepositoryMock = new Mock<IRefreshTokenRepository>();
         _configurationMock = new Mock<IConfiguration>();
 
         SetupConfiguration();
+        SetupRefreshTokenRepository();
 
-        _authService = new AuthService(_userRepositoryMock.Object, _configurationMock.Object);
+        _authService = new AuthService(
+            _userRepositoryMock.Object,
+            _refreshTokenRepositoryMock.Object,
+            _configurationMock.Object);
     }
 
     private void SetupConfiguration()
@@ -33,7 +40,15 @@ public class AuthServiceTests
         _configurationMock.Setup(x => x["Jwt:Secret"]).Returns(ValidJwtSecret);
         _configurationMock.Setup(x => x["Jwt:Issuer"]).Returns(JwtIssuer);
         _configurationMock.Setup(x => x["Jwt:Audience"]).Returns(JwtAudience);
-        _configurationMock.Setup(x => x["Jwt:ExpirationInDays"]).Returns("7");
+        _configurationMock.Setup(x => x["Jwt:AccessTokenExpirationMinutes"]).Returns("15");
+        _configurationMock.Setup(x => x["Jwt:RefreshTokenExpirationDays"]).Returns("7");
+    }
+
+    private void SetupRefreshTokenRepository()
+    {
+        _refreshTokenRepositoryMock
+            .Setup(x => x.CreateAsync(It.IsAny<RefreshToken>()))
+            .Returns(Task.CompletedTask);
     }
 
     #region Constructor Tests
@@ -46,7 +61,10 @@ public class AuthServiceTests
         configMock.Setup(x => x["Jwt:Secret"]).Returns((string?)null);
 
         // Act & Assert
-        var act = () => new AuthService(_userRepositoryMock.Object, configMock.Object);
+        var act = () => new AuthService(
+            _userRepositoryMock.Object,
+            _refreshTokenRepositoryMock.Object,
+            configMock.Object);
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("JWT Secret is not configured");
     }
@@ -59,10 +77,14 @@ public class AuthServiceTests
         configMock.Setup(x => x["Jwt:Secret"]).Returns("short");
         configMock.Setup(x => x["Jwt:Issuer"]).Returns(JwtIssuer);
         configMock.Setup(x => x["Jwt:Audience"]).Returns(JwtAudience);
-        configMock.Setup(x => x["Jwt:ExpirationInDays"]).Returns("7");
+        configMock.Setup(x => x["Jwt:AccessTokenExpirationMinutes"]).Returns("15");
+        configMock.Setup(x => x["Jwt:RefreshTokenExpirationDays"]).Returns("7");
 
         // Act & Assert
-        var act = () => new AuthService(_userRepositoryMock.Object, configMock.Object);
+        var act = () => new AuthService(
+            _userRepositoryMock.Object,
+            _refreshTokenRepositoryMock.Object,
+            configMock.Object);
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("JWT Secret must be at least 32 characters long");
     }
@@ -96,6 +118,7 @@ public class AuthServiceTests
         // Assert
         result.Success.Should().BeTrue();
         result.Token.Should().NotBeNullOrEmpty();
+        result.RefreshToken.Should().NotBeNullOrEmpty();
         result.User.Should().NotBeNull();
         result.User!.Email.Should().Be(request.Email.ToLower());
         result.User.FullName.Should().Be(request.FullName);
@@ -255,6 +278,7 @@ public class AuthServiceTests
         // Assert
         result.Success.Should().BeTrue();
         result.Token.Should().NotBeNullOrEmpty();
+        result.RefreshToken.Should().NotBeNullOrEmpty();
         result.User.Should().NotBeNull();
         result.User!.Id.Should().Be(user.Id);
         result.User.Email.Should().Be(user.Email);

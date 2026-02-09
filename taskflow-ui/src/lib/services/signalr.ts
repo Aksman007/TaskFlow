@@ -4,20 +4,20 @@ class SignalRService {
   private connection: signalR.HubConnection | null = null;
   private eventHandlers: Map<string, Function[]> = new Map();
 
-  async connect(token: string) {
+  async connect() {
     if (this.connection?.state === signalR.HubConnectionState.Connected) {
       console.log('SignalR already connected');
       return;
     }
 
     const hubUrl = process.env.NEXT_PUBLIC_HUB_URL || 'http://localhost:5030/hubs/tasks';
-    
+
     console.log('Connecting to SignalR hub:', hubUrl);
 
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl(hubUrl, {
-        accessTokenFactory: () => token,
-        withCredentials: false,
+        // Use cookie-based auth — no access token factory needed
+        withCredentials: true,
       })
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Information)
@@ -92,7 +92,7 @@ class SignalRService {
 
     // Normalize event name to lowercase
     const normalizedEventName = eventName.toLowerCase();
-    
+
     console.log(`Registering handler for event: ${eventName} (normalized: ${normalizedEventName})`);
 
     // Store handler
@@ -114,7 +114,7 @@ class SignalRService {
     }
 
     const normalizedEventName = eventName.toLowerCase();
-    
+
     console.log(`Unregistering handler for event: ${eventName} (normalized: ${normalizedEventName})`);
 
     // Remove from stored handlers

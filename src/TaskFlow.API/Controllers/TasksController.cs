@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using TaskFlow.API.Hubs;
 using TaskFlow.Application.DTOs.Task;
+using TaskFlow.Application.Helpers;
 using TaskFlow.Core.Entities;
 using TaskFlow.Core.Enums;
 using TaskFlow.Core.Interfaces.Repositories;
@@ -110,8 +111,8 @@ public class TasksController : BaseController
         var task = new TaskItem
         {
             Id = Guid.NewGuid(),
-            Title = request.Title,
-            Description = request.Description ?? string.Empty,
+            Title = InputSanitizer.SanitizeText(request.Title, 300),
+            Description = InputSanitizer.SanitizeHtml(request.Description),
             ProjectId = request.ProjectId,
             AssignedToId = request.AssignedToId,
             Status = Core.Enums.TaskStatus.Todo,
@@ -170,8 +171,8 @@ public class TasksController : BaseController
         var oldStatus = task.Status;
 
         // Update task properties
-        task.Title = request.Title;
-        task.Description = request.Description ?? string.Empty;
+        task.Title = InputSanitizer.SanitizeText(request.Title, 300);
+        task.Description = InputSanitizer.SanitizeHtml(request.Description);
         task.Status = request.Status;
         task.Priority = request.Priority;
         task.AssignedToId = request.AssignedToId;

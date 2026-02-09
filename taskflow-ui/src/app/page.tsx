@@ -2,23 +2,20 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/lib/store/authStore';
 import { Spinner } from '@/components/common/Spinner';
 
 export default function HomePage() {
   const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    
-    if (token) {
-      // Redirect to dashboard
+    if (isAuthenticated) {
       router.push('/dashboard');
     } else {
-      // Redirect to login
       router.push('/login');
     }
-  }, [router]);
+  }, [router, isAuthenticated]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">

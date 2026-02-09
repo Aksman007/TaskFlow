@@ -15,6 +15,7 @@ public class TaskFlowDbContext : DbContext
     public DbSet<Project> Projects { get; set; }
     public DbSet<ProjectMember> ProjectMembers { get; set; }
     public DbSet<TaskItem> Tasks { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -228,6 +229,50 @@ public class TaskFlowDbContext : DbContext
 
             entity.HasIndex(e => e.CreatedAt)
                 .HasDatabaseName("ix_tasks_created_at");
+        });
+
+        // RefreshToken configuration
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.ToTable("refresh_tokens");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .HasColumnName("id")
+                .ValueGeneratedNever();
+
+            entity.Property(e => e.UserId)
+                .HasColumnName("user_id")
+                .IsRequired();
+
+            entity.Property(e => e.Token)
+                .HasColumnName("token")
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.HasIndex(e => e.Token)
+                .IsUnique()
+                .HasDatabaseName("ix_refresh_tokens_token");
+
+            entity.Property(e => e.ExpiresAt)
+                .HasColumnName("expires_at")
+                .IsRequired();
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("created_at")
+                .IsRequired();
+
+            entity.Property(e => e.RevokedAt)
+                .HasColumnName("revoked_at");
+
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.RefreshTokens)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_refresh_tokens_user_id");
+
+            entity.HasIndex(e => e.UserId)
+                .HasDatabaseName("ix_refresh_tokens_user_id");
         });
     }
 }

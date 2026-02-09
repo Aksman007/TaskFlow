@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using TaskFlow.Core.Interfaces;
 using TaskFlow.Core.Interfaces.Repositories;
 using TaskFlow.Infrastructure.Data;
 using TaskFlow.Infrastructure.Repositories;
@@ -28,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<IProjectRepository, ProjectRepository>();
         services.AddScoped<IProjectMemberRepository, ProjectMemberRepository>();
         services.AddScoped<ITaskRepository, TaskRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         // MongoDB Repositories
         services.AddScoped<IActivityLogRepository, ActivityLogRepository>();

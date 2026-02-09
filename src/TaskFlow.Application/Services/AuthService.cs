@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -7,6 +8,7 @@ using TaskFlow.Application.DTOs.Auth;
 using TaskFlow.Application.DTOs.User;
 using TaskFlow.Application.Services.Interfaces;
 using TaskFlow.Core.Entities;
+using TaskFlow.Core.Interfaces;
 using TaskFlow.Core.Interfaces.Repositories;
 using BCrypt.Net;
 
@@ -15,24 +17,29 @@ namespace TaskFlow.Application.Services;
 public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IConfiguration _configuration;
     private readonly string _jwtSecret;
     private readonly string _jwtIssuer;
     private readonly string _jwtAudience;
-    private readonly int _jwtExpirationDays;
+    private readonly int _accessTokenMinutes;
+    private readonly int _refreshTokenDays;
 
     public AuthService(
         IUserRepository userRepository,
+        IRefreshTokenRepository refreshTokenRepository,
         IConfiguration configuration)
     {
         _userRepository = userRepository;
+        _refreshTokenRepository = refreshTokenRepository;
         _configuration = configuration;
 
         _jwtSecret = _configuration["Jwt:Secret"]
             ?? throw new InvalidOperationException("JWT Secret is not configured");
         _jwtIssuer = _configuration["Jwt:Issuer"] ?? "TaskFlow";
         _jwtAudience = _configuration["Jwt:Audience"] ?? "TaskFlowUsers";
-        _jwtExpirationDays = int.Parse(_configuration["Jwt:ExpirationInDays"] ?? "7");
+        _accessTokenMinutes = int.Parse(_configuration["Jwt:AccessTokenExpirationMinutes"] ?? "15");
+        _refreshTokenDays = int.Parse(_configuration["Jwt:RefreshTokenExpirationDays"] ?? "7");
 
         // Validate JWT Secret length
         if (_jwtSecret.Length < 32)
@@ -68,16 +75,18 @@ public class AuthService : IAuthService
 
             await _userRepository.CreateAsync(user);
 
-            // Generate token
-            var token = GenerateJwtToken(user);
-            var expiresAt = DateTime.UtcNow.AddDays(_jwtExpirationDays);
+            // Generate tokens
+            var accessToken = GenerateAccessToken(user);
+            var refreshToken = await GenerateRefreshTokenAsync(user.Id);
 
             return new AuthResult
             {
                 Success = true,
-                Token = token,
+                Token = accessToken,
+                RefreshToken = refreshToken.Token,
                 User = MapToUserDto(user),
-                ExpiresAt = expiresAt
+                ExpiresAt = DateTime.UtcNow.AddMinutes(_accessTokenMinutes),
+                RefreshTokenExpiresAt = refreshToken.ExpiresAt
             };
         }
         catch (Exception ex)
@@ -116,16 +125,18 @@ public class AuthService : IAuthService
                 };
             }
 
-            // Generate token
-            var token = GenerateJwtToken(user);
-            var expiresAt = DateTime.UtcNow.AddDays(_jwtExpirationDays);
+            // Generate tokens
+            var accessToken = GenerateAccessToken(user);
+            var refreshToken = await GenerateRefreshTokenAsync(user.Id);
 
             return new AuthResult
             {
                 Success = true,
-                Token = token,
+                Token = accessToken,
+                RefreshToken = refreshToken.Token,
                 User = MapToUserDto(user),
-                ExpiresAt = expiresAt
+                ExpiresAt = DateTime.UtcNow.AddMinutes(_accessTokenMinutes),
+                RefreshTokenExpiresAt = refreshToken.ExpiresAt
             };
         }
         catch (Exception ex)
@@ -136,6 +147,55 @@ public class AuthService : IAuthService
                 Error = $"Login failed: {ex.Message}"
             };
         }
+    }
+
+    public async Task<AuthResult> RefreshTokenAsync(string refreshTokenValue)
+    {
+        try
+        {
+            var storedToken = await _refreshTokenRepository.GetByTokenAsync(refreshTokenValue);
+
+            if (storedToken == null || !storedToken.IsActive)
+            {
+                return new AuthResult
+                {
+                    Success = false,
+                    Error = "Invalid or expired refresh token"
+                };
+            }
+
+            var user = storedToken.User;
+
+            // Revoke the old refresh token (rotation)
+            await _refreshTokenRepository.RevokeAsync(refreshTokenValue);
+
+            // Generate new tokens
+            var newAccessToken = GenerateAccessToken(user);
+            var newRefreshToken = await GenerateRefreshTokenAsync(user.Id);
+
+            return new AuthResult
+            {
+                Success = true,
+                Token = newAccessToken,
+                RefreshToken = newRefreshToken.Token,
+                User = MapToUserDto(user),
+                ExpiresAt = DateTime.UtcNow.AddMinutes(_accessTokenMinutes),
+                RefreshTokenExpiresAt = newRefreshToken.ExpiresAt
+            };
+        }
+        catch (Exception ex)
+        {
+            return new AuthResult
+            {
+                Success = false,
+                Error = $"Token refresh failed: {ex.Message}"
+            };
+        }
+    }
+
+    public async Task RevokeRefreshTokenAsync(string refreshTokenValue)
+    {
+        await _refreshTokenRepository.RevokeAsync(refreshTokenValue);
     }
 
     public async Task<bool> ValidateTokenAsync(string token)
@@ -177,7 +237,7 @@ public class AuthService : IAuthService
         return Guid.Parse(userIdClaim);
     }
 
-    private string GenerateJwtToken(User user)
+    private string GenerateAccessToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(_jwtSecret);
@@ -194,7 +254,7 @@ public class AuthService : IAuthService
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddDays(_jwtExpirationDays),
+            Expires = DateTime.UtcNow.AddMinutes(_accessTokenMinutes),
             Issuer = _jwtIssuer,
             Audience = _jwtAudience,
             SigningCredentials = new SigningCredentials(
@@ -204,6 +264,21 @@ public class AuthService : IAuthService
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
+    }
+
+    private async Task<RefreshToken> GenerateRefreshTokenAsync(Guid userId)
+    {
+        var refreshToken = new RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
+            ExpiresAt = DateTime.UtcNow.AddDays(_refreshTokenDays),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _refreshTokenRepository.CreateAsync(refreshToken);
+        return refreshToken;
     }
 
     private UserDto MapToUserDto(User user)

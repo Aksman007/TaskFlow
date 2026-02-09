@@ -4,6 +4,7 @@
 import { use } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/lib/store/authStore';
 import { useProject } from '@/lib/hooks/useProjects';
 import { useTasks } from '@/lib/hooks/useTasks';
 import { useSignalR } from '@/lib/hooks/useSignalR';
@@ -20,22 +21,18 @@ export default function ProjectPage({ params }: PageProps) {
   const router = useRouter();
   const { id } = use(params);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const { isAuthenticated } = useAuthStore();
 
   console.log('Project Page Loaded - ID:', id);
 
   // Check authentication
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    console.log('Project page - checking auth, token exists:', !!token);
-    
-    if (!token) {
-      console.log('No token found, redirecting to login');
+    if (!isAuthenticated) {
       router.push('/login');
       return;
     }
-    
     setIsCheckingAuth(false);
-  }, [router]);
+  }, [router, isAuthenticated]);
 
   const { data: project, isLoading: projectLoading, error: projectError } = useProject(id);
   const { tasks, isLoading: tasksLoading, error: tasksError } = useTasks(id);

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/lib/store/authStore';
+import { authApi } from '@/lib/api/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -51,28 +53,22 @@ export default function SettingsPage() {
     resolver: zodResolver(settingsSchema),
   });
 
+  const { user, isAuthenticated, clearAuth } = useAuthStore();
+
   useEffect(() => {
-    // Check authentication
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (!isAuthenticated) {
       router.push('/login');
       return;
     }
 
-    // Load user data
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        setValue('fullName', user.fullName);
-        setValue('email', user.email);
-      } catch (error) {
-        console.error('Failed to parse user data:', error);
-      }
+    // Load user data from Zustand store
+    if (user) {
+      setValue('fullName', user.fullName);
+      setValue('email', user.email);
     }
 
     setIsLoading(false);
-  }, [router, setValue]);
+  }, [router, setValue, isAuthenticated, user]);
 
   const onSubmit = async (data: SettingsFormData) => {
     try {
@@ -85,15 +81,6 @@ export default function SettingsPage() {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Update localStorage
-      const userStr = localStorage.getItem('user');
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        user.fullName = data.fullName;
-        user.email = data.email;
-        localStorage.setItem('user', JSON.stringify(user));
-      }
-
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } catch (error: any) {
       console.error('Failed to update profile:', error);
@@ -103,9 +90,13 @@ export default function SettingsPage() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      // Ignore errors during logout
+    }
+    clearAuth();
     window.location.href = '/login';
   };
 

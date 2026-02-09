@@ -3,6 +3,7 @@
 
 import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/lib/store/authStore';
 import { useProject } from '@/lib/hooks/useProjects';
 import { useProjectMembers } from '@/lib/hooks/useProjectMembers';
 import { Button } from '@/components/common/Button';
@@ -21,16 +22,16 @@ export default function ProjectMembersPage({ params }: PageProps) {
   const { id } = use(params);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const { isAuthenticated } = useAuthStore();
 
   // Check authentication
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (!isAuthenticated) {
       router.push('/login');
       return;
     }
     setIsCheckingAuth(false);
-  }, [router]);
+  }, [router, isAuthenticated]);
 
   const { data: project, isLoading: projectLoading } = useProject(id);
   const {

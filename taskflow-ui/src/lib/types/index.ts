@@ -36,7 +36,7 @@ export enum TaskPriority {
   High = 2,
 }
 
-export enum ProjectRole { 
+export enum ProjectRole {
     Viewer = 0,
     Member = 1,
     Admin = 2,

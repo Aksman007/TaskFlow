@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/lib/store/authStore';
 import { useProjects } from '@/lib/hooks/useProjects';
 import { ProjectCard } from '@/components/projects/ProjectCard';
 import { CreateProjectModal } from '@/components/projects/CreateProjectModal';
@@ -14,20 +15,16 @@ export default function DashboardPage() {
   const router = useRouter();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const { isAuthenticated } = useAuthStore();
 
   // Check authentication
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    console.log('Dashboard - checking auth, token exists:', !!token);
-    
-    if (!token) {
-      console.log('No token found, redirecting to login');
+    if (!isAuthenticated) {
       router.push('/login');
       return;
     }
-    
     setIsCheckingAuth(false);
-  }, [router]);
+  }, [router, isAuthenticated]);
 
   const { projects, isLoading } = useProjects();
 

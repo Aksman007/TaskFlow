@@ -10,4 +10,5 @@ public class User
 
     // Navigation properties
     public ICollection<ProjectMember> ProjectMembers { get; set; } = [];
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
 }

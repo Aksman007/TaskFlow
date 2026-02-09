@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
 import { authApi } from '@/lib/api/auth';
+import { useAuthStore } from '@/lib/store/authStore';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 
@@ -20,6 +21,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  const { setAuth } = useAuthStore();
 
   const {
     register,
@@ -37,15 +39,10 @@ export default function LoginPage() {
       console.log('Attempting login...');
       const result = await authApi.login(data);
       
-      if (result.success && result.token && result.user) {
-        console.log('Login successful!');
-        
-        // Save to localStorage
-        localStorage.setItem('token', result.token);
-        localStorage.setItem('user', JSON.stringify(result.user));
-        
-        console.log('Token saved, redirecting...');
-        
+      if (result.success && result.user) {
+        // Store user info in Zustand (tokens are in httpOnly cookies)
+        setAuth(result.user);
+
         // Force hard redirect
         window.location.href = '/dashboard';
       } else {

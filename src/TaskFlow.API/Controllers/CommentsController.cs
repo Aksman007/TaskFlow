@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using TaskFlow.API.Hubs;
 using TaskFlow.Application.DTOs.Comment;
+using TaskFlow.Application.Helpers;
 using TaskFlow.Core.Documents;
 using TaskFlow.Core.Interfaces.Repositories;
 
@@ -76,7 +77,7 @@ public class CommentsController : BaseController
             TaskId = request.TaskId,
             UserId = userId,
             UserName = GetCurrentUserName(),
-            Content = request.Content,
+            Content = InputSanitizer.SanitizeHtml(request.Content),
             CreatedAt = DateTime.UtcNow
         };
 
@@ -111,9 +112,10 @@ public class CommentsController : BaseController
             return Forbid();
         }
 
-        await _commentRepository.UpdateCommentAsync(id, content);
+        var sanitizedContent = InputSanitizer.SanitizeHtml(content);
+        await _commentRepository.UpdateCommentAsync(id, sanitizedContent);
 
-        comment.Content = content;
+        comment.Content = sanitizedContent;
         comment.UpdatedAt = DateTime.UtcNow;
 
         var commentDto = MapToDto(comment);

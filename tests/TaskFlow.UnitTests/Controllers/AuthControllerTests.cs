@@ -1,5 +1,7 @@
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TaskFlow.API.Controllers;
@@ -14,20 +16,33 @@ public class AuthControllerTests
 {
     private readonly Mock<IAuthService> _authServiceMock;
     private readonly Mock<ILogger<AuthController>> _loggerMock;
+    private readonly Mock<IConfiguration> _configurationMock;
     private readonly AuthController _controller;
 
     public AuthControllerTests()
     {
         _authServiceMock = new Mock<IAuthService>();
         _loggerMock = new Mock<ILogger<AuthController>>();
+        _configurationMock = new Mock<IConfiguration>();
 
-        _controller = new AuthController(_authServiceMock.Object, _loggerMock.Object);
+        _configurationMock.Setup(x => x["Jwt:AccessTokenExpirationMinutes"]).Returns("15");
+
+        _controller = new AuthController(
+            _authServiceMock.Object,
+            _loggerMock.Object,
+            _configurationMock.Object);
+
+        // Set up HttpContext so Response.Cookies works
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
     }
 
     #region Register Tests
 
     [Fact]
-    public async Task Register_WithValidRequest_ReturnsOkWithAuthResult()
+    public async Task Register_WithValidRequest_ReturnsOkWithUserInfo()
     {
         // Arrange
         var request = new RegisterRequest
@@ -41,6 +56,7 @@ public class AuthControllerTests
         {
             Success = true,
             Token = "jwt-token",
+            RefreshToken = "refresh-token",
             User = new UserDto
             {
                 Id = Guid.NewGuid(),
@@ -48,7 +64,8 @@ public class AuthControllerTests
                 FullName = request.FullName,
                 CreatedAt = DateTime.UtcNow
             },
-            ExpiresAt = DateTime.UtcNow.AddDays(7)
+            ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+            RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(7)
         };
 
         _authServiceMock
@@ -60,9 +77,12 @@ public class AuthControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var authResult = okResult.Value.Should().BeOfType<AuthResult>().Subject;
-        authResult.Success.Should().BeTrue();
-        authResult.Token.Should().Be(expectedResult.Token);
+        okResult.Value.Should().BeEquivalentTo(new
+        {
+            success = true,
+            user = expectedResult.User,
+            expiresAt = expectedResult.ExpiresAt
+        });
     }
 
     [Fact]
@@ -113,7 +133,7 @@ public class AuthControllerTests
     #region Login Tests
 
     [Fact]
-    public async Task Login_WithValidCredentials_ReturnsOkWithAuthResult()
+    public async Task Login_WithValidCredentials_ReturnsOkWithUserInfo()
     {
         // Arrange
         var request = new LoginRequest
@@ -126,6 +146,7 @@ public class AuthControllerTests
         {
             Success = true,
             Token = "jwt-token",
+            RefreshToken = "refresh-token",
             User = new UserDto
             {
                 Id = Guid.NewGuid(),
@@ -133,7 +154,8 @@ public class AuthControllerTests
                 FullName = "Test User",
                 CreatedAt = DateTime.UtcNow
             },
-            ExpiresAt = DateTime.UtcNow.AddDays(7)
+            ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+            RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(7)
         };
 
         _authServiceMock
@@ -145,9 +167,12 @@ public class AuthControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var authResult = okResult.Value.Should().BeOfType<AuthResult>().Subject;
-        authResult.Success.Should().BeTrue();
-        authResult.Token.Should().NotBeNullOrEmpty();
+        okResult.Value.Should().BeEquivalentTo(new
+        {
+            success = true,
+            user = expectedResult.User,
+            expiresAt = expectedResult.ExpiresAt
+        });
     }
 
     [Fact]
@@ -237,14 +262,18 @@ public class AuthControllerTests
     #region Logout Tests
 
     [Fact]
-    public void Logout_ReturnsOkWithMessage()
+    public async Task Logout_ReturnsOkWithMessage()
     {
         // Arrange
         var userId = Guid.NewGuid();
         TestHelpers.SetupControllerContext(_controller, userId);
 
+        _authServiceMock
+            .Setup(x => x.RevokeRefreshTokenAsync(It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
         // Act
-        var result = _controller.Logout();
+        var result = await _controller.Logout();
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;

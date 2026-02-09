@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
 import { authApi } from '@/lib/api/auth';
+import { useAuthStore } from '@/lib/store/authStore';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 
@@ -25,6 +26,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 export default function RegisterPage() {
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  const { setAuth } = useAuthStore();
 
   const {
     register,
@@ -45,11 +47,10 @@ export default function RegisterPage() {
         password: data.password,
       });
       
-      if (result.success && result.token && result.user) {
-        // Save to localStorage
-        localStorage.setItem('token', result.token);
-        localStorage.setItem('user', JSON.stringify(result.user));
-        
+      if (result.success && result.user) {
+        // Store user info in Zustand (tokens are in httpOnly cookies)
+        setAuth(result.user);
+
         // Force hard redirect
         window.location.href = '/dashboard';
       } else {
