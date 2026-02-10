@@ -22,7 +22,7 @@ interface CreateTaskModalProps {
 const taskSchema = z.object({
   title: z.string().min(3, 'Task title must be at least 3 characters'),
   description: z.string().optional(),
-  priority: z.coerce.number().min(0).max(2),
+  priority: z.number().min(0).max(2),
   assignedToId: z.string().optional(),
   dueDate: z.string().optional(),
 });
@@ -31,8 +31,8 @@ type TaskFormData = z.infer<typeof taskSchema>;
 
 interface ProjectMember {
   userName: string;
-    userEmail: string;
-    userId: string;
+  userEmail: string;
+  userId: string;
   id: string;
 }
 
@@ -69,7 +69,12 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     try {
       setLoadingMembers(true);
       const members = await usersApi.getProjectMembers(projectId);
-      setProjectMembers(members);
+      setProjectMembers(members.map(m => ({
+        id: m.id,
+        userId: m.id,
+        userName: m.fullName,
+        userEmail: m.email,
+      })));
     } catch (error) {
       console.error('Failed to load project members:', error);
     } finally {

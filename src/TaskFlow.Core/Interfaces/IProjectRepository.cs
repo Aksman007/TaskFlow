@@ -13,4 +13,5 @@ public interface IProjectRepository
     Task DeleteAsync(Guid id);
     Task<bool> IsUserMemberAsync(Guid projectId, Guid userId);
     Task<bool> IsUserOwnerAsync(Guid projectId, Guid userId);
+    Task<(IEnumerable<Project> Items, int TotalCount)> GetUserProjectsPagedAsync(Guid userId, int skip, int take);
 }

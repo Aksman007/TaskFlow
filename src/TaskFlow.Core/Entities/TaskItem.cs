@@ -1,8 +1,9 @@
 using TaskFlow.Core.Enums;
+using TaskFlow.Core.Interfaces;
 
 namespace TaskFlow.Core.Entities;
 
-public class TaskItem
+public class TaskItem : ISoftDeletable
 {
     public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
@@ -12,7 +13,10 @@ public class TaskItem
     public Enums.TaskStatus Status { get; set; }
     public TaskPriority Priority { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
     public DateTime? DueDate { get; set; }
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
 
     // Navigation properties
     public Project Project { get; set; } = null!;

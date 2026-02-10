@@ -89,4 +89,21 @@ public class ProjectRepository : IProjectRepository
         return await _context.Projects
             .AnyAsync(p => p.Id == projectId && p.OwnerId == userId);
     }
+
+    public async Task<(IEnumerable<Project> Items, int TotalCount)> GetUserProjectsPagedAsync(Guid userId, int skip, int take)
+    {
+        var query = _context.ProjectMembers
+            .AsNoTracking()
+            .Where(pm => pm.UserId == userId)
+            .Include(pm => pm.Project)
+                .ThenInclude(p => p.Owner)
+            .Select(pm => pm.Project)
+            .Distinct()
+            .OrderByDescending(p => p.CreatedAt);
+
+        var totalCount = await query.CountAsync();
+        var items = await query.Skip(skip).Take(take).ToListAsync();
+
+        return (items, totalCount);
+    }
 }

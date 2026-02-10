@@ -14,4 +14,6 @@ public interface ITaskRepository
     Task UpdateAsync(TaskItem task);
     Task DeleteAsync(Guid id);
     Task<int> GetProjectTaskCountAsync(Guid projectId);
+    Task<(IEnumerable<TaskItem> Items, int TotalCount)> GetProjectTasksPagedAsync(Guid projectId, int skip, int take);
+    Task<(IEnumerable<TaskItem> Items, int TotalCount)> GetUserTasksPagedAsync(Guid userId, int skip, int take);
 }

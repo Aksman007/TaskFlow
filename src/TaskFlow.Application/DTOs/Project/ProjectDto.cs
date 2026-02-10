@@ -8,6 +8,7 @@ public class ProjectDto
     public Guid OwnerId { get; set; }
     public string OwnerName { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
     public int MemberCount { get; set; }
     public int TaskCount { get; set; }
 }

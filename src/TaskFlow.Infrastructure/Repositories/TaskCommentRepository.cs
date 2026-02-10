@@ -23,13 +23,15 @@ public class TaskCommentRepository : ITaskCommentRepository
 
     public async Task<TaskComment?> GetCommentByIdAsync(string id)
     {
-        var filter = Builders<TaskComment>.Filter.Eq(c => c.Id, id);
+        var filter = Builders<TaskComment>.Filter.Eq(c => c.Id, id)
+            & Builders<TaskComment>.Filter.Ne(c => c.IsDeleted, true);
         return await _collection.Find(filter).FirstOrDefaultAsync();
     }
 
     public async Task<IEnumerable<TaskComment>> GetTaskCommentsAsync(Guid taskId)
     {
-        var filter = Builders<TaskComment>.Filter.Eq(c => c.TaskId, taskId);
+        var filter = Builders<TaskComment>.Filter.Eq(c => c.TaskId, taskId)
+            & Builders<TaskComment>.Filter.Ne(c => c.IsDeleted, true);
         var sort = Builders<TaskComment>.Sort.Ascending(c => c.CreatedAt);
 
         return await _collection
@@ -51,12 +53,33 @@ public class TaskCommentRepository : ITaskCommentRepository
     public async Task DeleteCommentAsync(string id)
     {
         var filter = Builders<TaskComment>.Filter.Eq(c => c.Id, id);
-        await _collection.DeleteOneAsync(filter);
+        var update = Builders<TaskComment>.Update
+            .Set(c => c.IsDeleted, true)
+            .Set(c => c.DeletedAt, DateTime.UtcNow);
+        await _collection.UpdateOneAsync(filter, update);
     }
 
     public async Task<int> GetTaskCommentCountAsync(Guid taskId)
     {
-        var filter = Builders<TaskComment>.Filter.Eq(c => c.TaskId, taskId);
+        var filter = Builders<TaskComment>.Filter.Eq(c => c.TaskId, taskId)
+            & Builders<TaskComment>.Filter.Ne(c => c.IsDeleted, true);
         return (int)await _collection.CountDocumentsAsync(filter);
+    }
+
+    public async Task<(IEnumerable<TaskComment> Items, int TotalCount)> GetTaskCommentsPagedAsync(Guid taskId, int skip, int take)
+    {
+        var filter = Builders<TaskComment>.Filter.Eq(c => c.TaskId, taskId) &
+                     Builders<TaskComment>.Filter.Ne(c => c.IsDeleted, true);
+        var sort = Builders<TaskComment>.Sort.Ascending(c => c.CreatedAt);
+
+        var totalCount = (int)await _collection.CountDocumentsAsync(filter);
+        var items = await _collection
+            .Find(filter)
+            .Sort(sort)
+            .Skip(skip)
+            .Limit(take)
+            .ToListAsync();
+
+        return (items, totalCount);
     }
 }

@@ -13,5 +13,6 @@ public class TaskDto
     public Core.Enums.TaskStatus Status { get; set; }
     public Core.Enums.TaskPriority Priority { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
     public DateTime? DueDate { get; set; }
 }

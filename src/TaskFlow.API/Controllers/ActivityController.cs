@@ -6,8 +6,7 @@ using TaskFlow.Core.Interfaces.Repositories;
 namespace TaskFlow.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-[Authorize]
+[Route("api/v1/[controller]")]
 public class ActivityController : BaseController
 {
     private readonly IActivityLogRepository _activityLogRepository;

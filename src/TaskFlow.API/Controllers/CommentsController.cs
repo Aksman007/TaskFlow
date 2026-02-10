@@ -10,8 +10,7 @@ using TaskFlow.Core.Interfaces.Repositories;
 namespace TaskFlow.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-[Authorize]
+[Route("api/v1/[controller]")]
 public class CommentsController : BaseController
 {
     private readonly ITaskCommentRepository _commentRepository;
@@ -35,8 +34,13 @@ public class CommentsController : BaseController
     }
 
     [HttpGet("task/{taskId}")]
-    public async Task<ActionResult<IEnumerable<CommentDto>>> GetTaskComments(Guid taskId)
+    public async Task<ActionResult> GetTaskComments(
+        Guid taskId,
+        [FromQuery] int skip = 0,
+        [FromQuery] int take = 50)
     {
+        take = Math.Clamp(take, 1, 100);
+
         // Verify task exists and user has access
         var task = await _taskRepository.GetByIdAsync(taskId);
         if (task == null)
@@ -51,8 +55,15 @@ public class CommentsController : BaseController
             return Forbid();
         }
 
-        var comments = await _commentRepository.GetTaskCommentsAsync(taskId);
-        return Ok(comments.Select(MapToDto));
+        var (comments, totalCount) = await _commentRepository.GetTaskCommentsPagedAsync(taskId, skip, take);
+        return Ok(new
+        {
+            items = comments.Select(MapToDto),
+            totalCount,
+            skip,
+            take,
+            hasMore = skip + take < totalCount
+        });
     }
 
     [HttpPost]

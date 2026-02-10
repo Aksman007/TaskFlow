@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskFlow.Core.Entities;
 using TaskFlow.Core.Enums;
@@ -7,7 +8,8 @@ using TaskFlow.Core.Documents;
 namespace TaskFlow.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
+[Authorize]
 public class TestController : ControllerBase
 {
     private readonly IUserRepository _userRepository;

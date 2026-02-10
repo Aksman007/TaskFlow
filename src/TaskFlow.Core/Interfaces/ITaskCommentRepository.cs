@@ -10,4 +10,5 @@ public interface ITaskCommentRepository
     Task UpdateCommentAsync(string id, string content);
     Task DeleteCommentAsync(string id);
     Task<int> GetTaskCommentCountAsync(Guid taskId);
+    Task<(IEnumerable<TaskComment> Items, int TotalCount)> GetTaskCommentsPagedAsync(Guid taskId, int skip, int take);
 }

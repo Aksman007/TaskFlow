@@ -1,9 +1,8 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 'use client';
 
-import { use, useState, useEffect } from 'react';
+import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/store/authStore';
 import { useProject } from '@/lib/hooks/useProjects';
 import { useProjectMembers } from '@/lib/hooks/useProjectMembers';
 import { Button } from '@/components/common/Button';
@@ -20,18 +19,7 @@ interface PageProps {
 export default function ProjectMembersPage({ params }: PageProps) {
   const router = useRouter();
   const { id } = use(params);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const { isAuthenticated } = useAuthStore();
-
-  // Check authentication
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-    setIsCheckingAuth(false);
-  }, [router, isAuthenticated]);
 
   const { data: project, isLoading: projectLoading } = useProject(id);
   const {
@@ -42,7 +30,7 @@ export default function ProjectMembersPage({ params }: PageProps) {
     updateMemberRole,
   } = useProjectMembers(id);
 
-  if (isCheckingAuth || projectLoading || membersLoading) {
+  if (projectLoading || membersLoading) {
     return (
       <div className="flex items-center justify-center h-96">
         <Spinner size="xl" />
@@ -181,7 +169,7 @@ function AddMemberModal({
 }: AddMemberModalProps) {
   const { addMember } = useProjectMembers(projectId);
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState(0);
+  const [role, setRole] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -197,10 +185,10 @@ function AddMemberModal({
       setIsLoading(true);
       setError('');
       
-      await addMember(email, parseInt(role));
+      await addMember(email, Number(role));
       
       setEmail('');
-      setRole(0);
+      setRole('0');
       onMemberAdded();
     } catch (err: any) {
       console.error('Failed to add member:', err);

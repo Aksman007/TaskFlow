@@ -1,6 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5030/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5030/api/v1';
 
 // Create axios instance — cookies are sent automatically via withCredentials
 const apiClient = axios.create({

@@ -7,8 +7,7 @@ using TaskFlow.Core.Interfaces.Repositories;
 namespace TaskFlow.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-[Authorize]
+[Route("api/v1/[controller]")]
 public class UsersController : BaseController
 {
     private readonly IUserRepository _userRepository;
@@ -115,11 +114,13 @@ public class UsersController : BaseController
     /// Get user's assigned tasks
     /// </summary>
     [HttpGet("me/tasks")]
-    [ProducesResponseType(typeof(IEnumerable<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult> GetMyTasks()
+    public async Task<ActionResult> GetMyTasks(
+        [FromQuery] int skip = 0,
+        [FromQuery] int take = 20)
     {
+        take = Math.Clamp(take, 1, 100);
         var userId = GetCurrentUserId();
-        var tasks = await _taskRepository.GetUserTasksAsync(userId);
+        var (tasks, totalCount) = await _taskRepository.GetUserTasksPagedAsync(userId, skip, take);
 
         var taskDtos = tasks.Select(t => new
         {
@@ -130,10 +131,18 @@ public class UsersController : BaseController
             Status = t.Status.ToString(),
             Priority = t.Priority.ToString(),
             t.CreatedAt,
+            t.UpdatedAt,
             t.DueDate
         });
 
-        return Ok(taskDtos);
+        return Ok(new
+        {
+            items = taskDtos,
+            totalCount,
+            skip,
+            take,
+            hasMore = skip + take < totalCount
+        });
     }
 
     /// <summary>

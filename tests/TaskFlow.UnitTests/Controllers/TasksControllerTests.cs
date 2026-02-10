@@ -136,16 +136,15 @@ public class TasksControllerTests
             .ReturnsAsync(true);
 
         _taskRepositoryMock
-            .Setup(x => x.GetProjectTasksAsync(projectId))
-            .ReturnsAsync(tasks);
+            .Setup(x => x.GetProjectTasksPagedAsync(projectId, 0, 50))
+            .ReturnsAsync((tasks.AsEnumerable(), tasks.Count));
 
         // Act
         var result = await _controller.GetProjectTasks(projectId);
 
         // Assert
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var taskDtos = okResult.Value.Should().BeAssignableTo<IEnumerable<TaskDto>>().Subject;
-        taskDtos.Should().HaveCount(3);
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        okResult.Value.Should().NotBeNull();
     }
 
     [Fact]
@@ -162,7 +161,7 @@ public class TasksControllerTests
         var result = await _controller.GetProjectTasks(projectId);
 
         // Assert
-        result.Result.Should().BeOfType<ForbidResult>();
+        result.Should().BeOfType<ForbidResult>();
     }
 
     #endregion

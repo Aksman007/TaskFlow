@@ -1,6 +1,8 @@
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using TaskFlow.Application.Services;
 using TaskFlow.Application.Services.Interfaces;
+using TaskFlow.Application.Validators;
 
 namespace TaskFlow.Application;
 
@@ -11,8 +13,8 @@ public static class DependencyInjection
         // Register services
         services.AddScoped<IAuthService, AuthService>();
 
-        // Add AutoMapper if needed
-        // services.AddAutoMapper(Assembly.GetExecutingAssembly());
+        // Register FluentValidation validators from this assembly
+        services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
 
         return services;
     }

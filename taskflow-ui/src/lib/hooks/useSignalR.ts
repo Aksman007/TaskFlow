@@ -5,15 +5,15 @@ import { signalRService } from '../services/signalr';
 import { useAuthStore } from '../store/authStore';
 
 export const useSignalR = (projectId: string | undefined) => {
-  const { token } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const hasJoined = useRef(false);
 
   useEffect(() => {
-    if (!projectId || !token) return;
+    if (!projectId || !isAuthenticated) return;
 
     const initSignalR = async () => {
       try {
-        await signalRService.connect(token);
+        await signalRService.connect();
 
         if (!hasJoined.current) {
           await signalRService.joinProject(projectId);
@@ -32,7 +32,7 @@ export const useSignalR = (projectId: string | undefined) => {
         hasJoined.current = false;
       }
     };
-  }, [projectId, token]);
+  }, [projectId, isAuthenticated]);
 
   return signalRService;
 };

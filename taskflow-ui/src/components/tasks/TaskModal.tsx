@@ -48,7 +48,12 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     try {
       setLoadingMembers(true);
       const members = await usersApi.getProjectMembers(task.projectId);
-      setProjectMembers(members);
+      setProjectMembers(members.map(m => ({
+        id: m.id,
+        userId: m.id,
+        userName: m.fullName,
+        userEmail: m.email,
+      })));
     } catch (error) {
       console.error('Failed to load project members:', error);
     } finally {

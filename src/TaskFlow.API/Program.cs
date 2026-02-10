@@ -1,9 +1,14 @@
 using System.Text;
+using System.Text.Json;
 using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using TaskFlow.API.Filters;
 using TaskFlow.API.Hubs;
 using TaskFlow.API.Middleware;
 using TaskFlow.Application;
@@ -13,7 +18,11 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    // 2.6 — FluentValidation filter
+    options.Filters.Add<ValidationFilter>();
+});
 builder.Services.AddEndpointsApiExplorer();
 
 // Configure Swagger with JWT support
@@ -56,6 +65,36 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // ============================================================
+// 2.7 — Redis Distributed Cache
+// ============================================================
+var redisConnectionString = builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379";
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = redisConnectionString;
+    options.InstanceName = "TaskFlow_";
+});
+
+// ============================================================
+// 2.8 — Health Checks
+// ============================================================
+builder.Services.AddHealthChecks()
+    .AddNpgSql(
+        builder.Configuration.GetConnectionString("DefaultConnection")!,
+        name: "postgresql",
+        failureStatus: HealthStatus.Unhealthy,
+        tags: new[] { "db", "sql", "postgresql" })
+    .AddMongoDb(
+        builder.Configuration["MongoDB:ConnectionString"] ?? "mongodb://taskflow:dev_password@localhost:27017",
+        name: "mongodb",
+        failureStatus: HealthStatus.Unhealthy,
+        tags: new[] { "db", "nosql", "mongodb" })
+    .AddRedis(
+        redisConnectionString,
+        name: "redis",
+        failureStatus: HealthStatus.Degraded,
+        tags: new[] { "cache", "redis" });
+
+// ============================================================
 // 1.3 — Rate Limiting (brute-force protection on auth endpoints)
 // ============================================================
 builder.Services.AddMemoryCache();
@@ -70,19 +109,19 @@ builder.Services.Configure<IpRateLimitOptions>(options =>
         // Auth endpoints: 10 requests per minute per IP
         new RateLimitRule
         {
-            Endpoint = "POST:/api/auth/login",
+            Endpoint = "POST:/api/v1/auth/login",
             Period = "1m",
             Limit = 10
         },
         new RateLimitRule
         {
-            Endpoint = "POST:/api/auth/register",
+            Endpoint = "POST:/api/v1/auth/register",
             Period = "1m",
             Limit = 5
         },
         new RateLimitRule
         {
-            Endpoint = "POST:/api/auth/refresh",
+            Endpoint = "POST:/api/v1/auth/refresh",
             Period = "1m",
             Limit = 20
         },
@@ -161,7 +200,15 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+// ============================================================
+// 2.5 — Global Authorization (require authenticated user by default)
+// ============================================================
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 // Add SignalR
 builder.Services.AddSignalR(options =>
@@ -237,6 +284,45 @@ app.MapControllers();
 
 // Map SignalR Hub
 app.MapHub<TaskHub>("/hubs/tasks");
+
+// ============================================================
+// 2.8 — Health Check Endpoints
+// ============================================================
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = _ => false, // Quick liveness check, no dependencies
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync(JsonSerializer.Serialize(new
+        {
+            status = report.Status.ToString(),
+            timestamp = DateTime.UtcNow
+        }));
+    }
+}).AllowAnonymous();
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        var result = new
+        {
+            status = report.Status.ToString(),
+            timestamp = DateTime.UtcNow,
+            checks = report.Entries.Select(e => new
+            {
+                name = e.Key,
+                status = e.Value.Status.ToString(),
+                description = e.Value.Description,
+                duration = e.Value.Duration.TotalMilliseconds,
+                exception = e.Value.Exception?.Message
+            })
+        };
+        await context.Response.WriteAsync(JsonSerializer.Serialize(result));
+    }
+}).AllowAnonymous();
 
 // Serve static files (for test HTML page)
 app.UseStaticFiles();

@@ -11,8 +11,7 @@ using TaskFlow.Core.Interfaces.Repositories;
 namespace TaskFlow.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-[Authorize]
+[Route("api/v1/[controller]")]
 public class TasksController : BaseController
 {
     private readonly ITaskRepository _taskRepository;
@@ -58,8 +57,14 @@ public class TasksController : BaseController
     }
 
     [HttpGet("project/{projectId}")]
-    public async Task<ActionResult<IEnumerable<TaskDto>>> GetProjectTasks(Guid projectId)
+    public async Task<ActionResult> GetProjectTasks(
+        Guid projectId,
+        [FromQuery] int skip = 0,
+        [FromQuery] int take = 50)
     {
+        // Clamp take to max 100
+        take = Math.Clamp(take, 1, 100);
+
         // Check if user is a member of the project
         var userId = GetCurrentUserId();
         var isMember = await _projectRepository.IsUserMemberAsync(projectId, userId);
@@ -69,8 +74,15 @@ public class TasksController : BaseController
             return Forbid();
         }
 
-        var tasks = await _taskRepository.GetProjectTasksAsync(projectId);
-        return Ok(tasks.Select(MapToDto));
+        var (tasks, totalCount) = await _taskRepository.GetProjectTasksPagedAsync(projectId, skip, take);
+        return Ok(new
+        {
+            items = tasks.Select(MapToDto),
+            totalCount,
+            skip,
+            take,
+            hasMore = skip + take < totalCount
+        });
     }
 
     [HttpPost]
@@ -256,6 +268,7 @@ public class TasksController : BaseController
             Status = task.Status,
             Priority = task.Priority,
             CreatedAt = task.CreatedAt,
+            UpdatedAt = task.UpdatedAt,
             DueDate = task.DueDate
         };
     }

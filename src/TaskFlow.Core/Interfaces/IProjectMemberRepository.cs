@@ -14,4 +14,5 @@ public interface IProjectMemberRepository
     Task RemoveMemberAsync(Guid id);
     Task<bool> IsMemberAsync(Guid projectId, Guid userId);
     Task<ProjectRole?> GetUserRoleAsync(Guid projectId, Guid userId);
+    Task<(IEnumerable<ProjectMember> Items, int TotalCount)> GetProjectMembersPagedAsync(Guid projectId, int skip, int take);
 }

@@ -7,7 +7,7 @@ using TaskFlow.Application.Services.Interfaces;
 namespace TaskFlow.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
@@ -28,6 +28,7 @@ public class AuthController : ControllerBase
     /// Register a new user
     /// </summary>
     [HttpPost("register")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(AuthResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
@@ -66,6 +67,7 @@ public class AuthController : ControllerBase
     /// Login with email and password
     /// </summary>
     [HttpPost("login")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(AuthResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
@@ -104,6 +106,7 @@ public class AuthController : ControllerBase
     /// Refresh the access token using the refresh token cookie
     /// </summary>
     [HttpPost("refresh")]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> RefreshToken()
@@ -235,13 +238,13 @@ public class AuthController : ControllerBase
             Secure = isProduction,
             SameSite = isProduction ? SameSiteMode.Strict : SameSiteMode.Lax,
             Expires = new DateTimeOffset(expiresAt),
-            Path = "/api/auth"
+            Path = "/api/v1/Auth"
         });
     }
 
     private void ClearAuthCookies()
     {
         Response.Cookies.Delete(AccessTokenCookieName, new CookieOptions { Path = "/" });
-        Response.Cookies.Delete(RefreshTokenCookieName, new CookieOptions { Path = "/api/auth" });
+        Response.Cookies.Delete(RefreshTokenCookieName, new CookieOptions { Path = "/api/v1/Auth" });
     }
 }

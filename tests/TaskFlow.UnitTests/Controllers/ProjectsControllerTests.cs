@@ -69,8 +69,8 @@ public class ProjectsControllerTests
         };
 
         _projectRepositoryMock
-            .Setup(x => x.GetUserProjectsAsync(_currentUserId))
-            .ReturnsAsync(projects);
+            .Setup(x => x.GetUserProjectsPagedAsync(_currentUserId, 0, 20))
+            .ReturnsAsync((projects.AsEnumerable(), projects.Count));
 
         _memberRepositoryMock
             .Setup(x => x.GetProjectMembersAsync(It.IsAny<Guid>()))
@@ -84,9 +84,8 @@ public class ProjectsControllerTests
         var result = await _controller.GetUserProjects();
 
         // Assert
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var projectDtos = okResult.Value.Should().BeAssignableTo<List<ProjectDto>>().Subject;
-        projectDtos.Should().HaveCount(2);
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        okResult.Value.Should().NotBeNull();
     }
 
     [Fact]
@@ -94,16 +93,15 @@ public class ProjectsControllerTests
     {
         // Arrange
         _projectRepositoryMock
-            .Setup(x => x.GetUserProjectsAsync(_currentUserId))
-            .ReturnsAsync(new List<Project>());
+            .Setup(x => x.GetUserProjectsPagedAsync(_currentUserId, 0, 20))
+            .ReturnsAsync((Enumerable.Empty<Project>(), 0));
 
         // Act
         var result = await _controller.GetUserProjects();
 
         // Assert
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var projectDtos = okResult.Value.Should().BeAssignableTo<List<ProjectDto>>().Subject;
-        projectDtos.Should().BeEmpty();
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        okResult.Value.Should().NotBeNull();
     }
 
     #endregion

@@ -2,9 +2,7 @@
 'use client';
 
 import { use } from 'react';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/store/authStore';
 import { useProject } from '@/lib/hooks/useProjects';
 import { useTasks } from '@/lib/hooks/useTasks';
 import { useSignalR } from '@/lib/hooks/useSignalR';
@@ -20,37 +18,11 @@ interface PageProps {
 export default function ProjectPage({ params }: PageProps) {
   const router = useRouter();
   const { id } = use(params);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const { isAuthenticated } = useAuthStore();
-
-  console.log('Project Page Loaded - ID:', id);
-
-  // Check authentication
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-    setIsCheckingAuth(false);
-  }, [router, isAuthenticated]);
-
   const { data: project, isLoading: projectLoading, error: projectError } = useProject(id);
   const { tasks, isLoading: tasksLoading, error: tasksError } = useTasks(id);
-  
-  console.log('Project data:', project);
-  console.log('Project loading:', projectLoading);
-  console.log('Project error:', projectError);
 
   // Connect to SignalR for real-time updates
   useSignalR(id);
-
-  if (isCheckingAuth) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Spinner size="xl" />
-      </div>
-    );
-  }
 
   if (projectLoading || tasksLoading) {
     return (

@@ -1,9 +1,7 @@
-/* eslint-disable react-hooks/set-state-in-effect */
+ 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/store/authStore';
+import { useState } from 'react';
 import { useProjects } from '@/lib/hooks/useProjects';
 import { ProjectCard } from '@/components/projects/ProjectCard';
 import { CreateProjectModal } from '@/components/projects/CreateProjectModal';
@@ -12,29 +10,9 @@ import { Spinner } from '@/components/common/Spinner';
 import { PlusIcon } from '@heroicons/react/24/outline';
 
 export default function DashboardPage() {
-  const router = useRouter();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const { isAuthenticated } = useAuthStore();
-
-  // Check authentication
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-    setIsCheckingAuth(false);
-  }, [router, isAuthenticated]);
 
   const { projects, isLoading } = useProjects();
-
-  if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Spinner size="xl" />
-      </div>
-    );
-  }
 
   if (isLoading) {
     return (
@@ -66,7 +44,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Projects Grid */}
-        {projects.length === 0 ? (
+        {projects.items.length === 0 ? (
           <div className="text-center py-12">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
               <PlusIcon className="h-8 w-8 text-gray-400" />
@@ -86,7 +64,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
+            {projects.items.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </div>

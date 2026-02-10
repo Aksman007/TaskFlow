@@ -5,8 +5,8 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5030/api'}/:path*`,
+        source: '/api/v1/:path*',
+        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5030/api/v1'}/:path*`,
       },
     ];
   },
@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: '/api/:path*',
+        source: '/api/v1/:path*',
         headers: [
           { key: 'Access-Control-Allow-Credentials', value: 'true' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
@@ -40,11 +40,6 @@ const nextConfig: NextConfig = {
   // TypeScript strict mode
   typescript: {
     ignoreBuildErrors: false,
-  },
-
-  // ESLint configuration
-  eslint: {
-    ignoreDuringBuilds: false,
   },
 
   // Image optimization config

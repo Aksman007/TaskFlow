@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TaskFlow.Core.Entities;
 using TaskFlow.Core.Enums;
+using TaskFlow.Core.Interfaces;
 
 namespace TaskFlow.Infrastructure.Data;
 
@@ -95,6 +96,19 @@ public class TaskFlowDbContext : DbContext
                 .HasColumnName("created_at")
                 .IsRequired();
 
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnName("updated_at");
+
+            entity.Property(e => e.IsDeleted)
+                .HasColumnName("is_deleted")
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            entity.Property(e => e.DeletedAt)
+                .HasColumnName("deleted_at");
+
+            entity.HasQueryFilter(e => !e.IsDeleted);
+
             // Relationships
             entity.HasOne(e => e.Owner)
                 .WithMany()
@@ -133,6 +147,16 @@ public class TaskFlowDbContext : DbContext
             entity.Property(e => e.JoinedAt)
                 .HasColumnName("joined_at")
                 .IsRequired();
+
+            entity.Property(e => e.IsDeleted)
+                .HasColumnName("is_deleted")
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            entity.Property(e => e.DeletedAt)
+                .HasColumnName("deleted_at");
+
+            entity.HasQueryFilter(e => !e.IsDeleted);
 
             // Relationships
             entity.HasOne(e => e.Project)
@@ -204,6 +228,19 @@ public class TaskFlowDbContext : DbContext
             entity.Property(e => e.DueDate)
                 .HasColumnName("due_date");
 
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnName("updated_at");
+
+            entity.Property(e => e.IsDeleted)
+                .HasColumnName("is_deleted")
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            entity.Property(e => e.DeletedAt)
+                .HasColumnName("deleted_at");
+
+            entity.HasQueryFilter(e => !e.IsDeleted);
+
             // Relationships
             entity.HasOne(e => e.Project)
                 .WithMany(p => p.Tasks)
@@ -274,5 +311,31 @@ public class TaskFlowDbContext : DbContext
             entity.HasIndex(e => e.UserId)
                 .HasDatabaseName("ix_refresh_tokens_user_id");
         });
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        foreach (var entry in ChangeTracker.Entries())
+        {
+            // Auto-set UpdatedAt on modified entities
+            if (entry.State == EntityState.Modified)
+            {
+                var updatedAtProp = entry.Properties.FirstOrDefault(p => p.Metadata.Name == "UpdatedAt");
+                if (updatedAtProp != null)
+                {
+                    updatedAtProp.CurrentValue = DateTime.UtcNow;
+                }
+            }
+
+            // Convert hard deletes to soft deletes for ISoftDeletable entities
+            if (entry.State == EntityState.Deleted && entry.Entity is ISoftDeletable softDeletable)
+            {
+                entry.State = EntityState.Modified;
+                softDeletable.IsDeleted = true;
+                softDeletable.DeletedAt = DateTime.UtcNow;
+            }
+        }
+
+        return await base.SaveChangesAsync(cancellationToken);
     }
 }

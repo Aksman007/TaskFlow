@@ -4,7 +4,6 @@ using System.Security.Claims;
 
 namespace TaskFlow.API.Controllers;
 
-[Authorize]
 [ApiController]
 public abstract class BaseController : ControllerBase
 {

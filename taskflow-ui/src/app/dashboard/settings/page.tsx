@@ -53,14 +53,9 @@ export default function SettingsPage() {
     resolver: zodResolver(settingsSchema),
   });
 
-  const { user, isAuthenticated, clearAuth } = useAuthStore();
+  const { user, clearAuth } = useAuthStore();
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-
     // Load user data from Zustand store
     if (user) {
       setValue('fullName', user.fullName);
@@ -68,7 +63,7 @@ export default function SettingsPage() {
     }
 
     setIsLoading(false);
-  }, [router, setValue, isAuthenticated, user]);
+  }, [setValue, user]);
 
   const onSubmit = async (data: SettingsFormData) => {
     try {

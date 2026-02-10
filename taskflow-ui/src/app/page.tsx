@@ -7,15 +7,18 @@ import { Spinner } from '@/components/common/Spinner';
 
 export default function HomePage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, _hasHydrated } = useAuthStore();
 
   useEffect(() => {
+    // Wait for Zustand to hydrate from localStorage before redirecting
+    if (!_hasHydrated) return;
+
     if (isAuthenticated) {
       router.push('/dashboard');
     } else {
       router.push('/login');
     }
-  }, [router, isAuthenticated]);
+  }, [router, isAuthenticated, _hasHydrated]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">

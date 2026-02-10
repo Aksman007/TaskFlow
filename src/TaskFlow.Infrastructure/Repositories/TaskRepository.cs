@@ -98,4 +98,33 @@ public class TaskRepository : ITaskRepository
         return await _context.Tasks
             .CountAsync(t => t.ProjectId == projectId);
     }
+
+    public async Task<(IEnumerable<TaskItem> Items, int TotalCount)> GetProjectTasksPagedAsync(Guid projectId, int skip, int take)
+    {
+        var query = _context.Tasks
+            .AsNoTracking()
+            .Where(t => t.ProjectId == projectId)
+            .Include(t => t.AssignedTo)
+            .OrderByDescending(t => t.CreatedAt);
+
+        var totalCount = await query.CountAsync();
+        var items = await query.Skip(skip).Take(take).ToListAsync();
+
+        return (items, totalCount);
+    }
+
+    public async Task<(IEnumerable<TaskItem> Items, int TotalCount)> GetUserTasksPagedAsync(Guid userId, int skip, int take)
+    {
+        var query = _context.Tasks
+            .AsNoTracking()
+            .Where(t => t.AssignedToId == userId)
+            .Include(t => t.Project)
+            .OrderBy(t => t.DueDate)
+            .ThenByDescending(t => t.Priority);
+
+        var totalCount = await query.CountAsync();
+        var items = await query.Skip(skip).Take(take).ToListAsync();
+
+        return (items, totalCount);
+    }
 }

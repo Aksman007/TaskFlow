@@ -10,8 +10,7 @@ using TaskFlow.Core.Interfaces.Repositories;
 namespace TaskFlow.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-[Authorize]
+[Route("api/v1/[controller]")]
 public class ProjectsController : BaseController
 {
     private readonly IProjectRepository _projectRepository;
@@ -44,11 +43,13 @@ public class ProjectsController : BaseController
     /// Get all projects for the current user
     /// </summary>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<ProjectDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ProjectDto>>> GetUserProjects()
+    public async Task<ActionResult> GetUserProjects(
+        [FromQuery] int skip = 0,
+        [FromQuery] int take = 20)
     {
+        take = Math.Clamp(take, 1, 100);
         var userId = GetCurrentUserId();
-        var projects = await _projectRepository.GetUserProjectsAsync(userId);
+        var (projects, totalCount) = await _projectRepository.GetUserProjectsPagedAsync(userId, skip, take);
 
         var projectDtos = new List<ProjectDto>();
         foreach (var project in projects)
@@ -64,12 +65,20 @@ public class ProjectsController : BaseController
                 OwnerId = project.OwnerId,
                 OwnerName = project.Owner.FullName,
                 CreatedAt = project.CreatedAt,
+                UpdatedAt = project.UpdatedAt,
                 MemberCount = members.Count(),
                 TaskCount = taskCount
             });
         }
 
-        return Ok(projectDtos);
+        return Ok(new
+        {
+            items = projectDtos,
+            totalCount,
+            skip,
+            take,
+            hasMore = skip + take < totalCount
+        });
     }
 
     /// <summary>
@@ -106,6 +115,7 @@ public class ProjectsController : BaseController
             OwnerId = project.OwnerId,
             OwnerName = project.Owner.FullName,
             CreatedAt = project.CreatedAt,
+            UpdatedAt = project.UpdatedAt,
             MemberCount = members.Count(),
             TaskCount = taskCount
         };
@@ -179,6 +189,7 @@ public class ProjectsController : BaseController
             OwnerId = project.OwnerId,
             OwnerName = project.Owner.FullName,
             CreatedAt = project.CreatedAt,
+            UpdatedAt = project.UpdatedAt,
             MemberCount = 1,
             TaskCount = 0
         };
@@ -263,6 +274,7 @@ public class ProjectsController : BaseController
             OwnerId = project.OwnerId,
             OwnerName = project.Owner.FullName,
             CreatedAt = project.CreatedAt,
+            UpdatedAt = project.UpdatedAt,
             MemberCount = members.Count(),
             TaskCount = taskCount
         };
@@ -315,10 +327,12 @@ public class ProjectsController : BaseController
     /// Get project members
     /// </summary>
     [HttpGet("{id}/members")]
-    [ProducesResponseType(typeof(IEnumerable<ProjectMemberDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<IEnumerable<ProjectMemberDto>>> GetProjectMembers(Guid id)
+    public async Task<ActionResult> GetProjectMembers(
+        Guid id,
+        [FromQuery] int skip = 0,
+        [FromQuery] int take = 50)
     {
+        take = Math.Clamp(take, 1, 100);
         var userId = GetCurrentUserId();
         var isMember = await _projectRepository.IsUserMemberAsync(id, userId);
 
@@ -327,7 +341,7 @@ public class ProjectsController : BaseController
             return Forbid();
         }
 
-        var members = await _memberRepository.GetProjectMembersAsync(id);
+        var (members, totalCount) = await _memberRepository.GetProjectMembersPagedAsync(id, skip, take);
 
         var memberDtos = members.Select(m => new ProjectMemberDto
         {
@@ -340,7 +354,14 @@ public class ProjectsController : BaseController
             JoinedAt = m.JoinedAt
         });
 
-        return Ok(memberDtos);
+        return Ok(new
+        {
+            items = memberDtos,
+            totalCount,
+            skip,
+            take,
+            hasMore = skip + take < totalCount
+        });
     }
 
     /// <summary>

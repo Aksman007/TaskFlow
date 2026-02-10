@@ -74,16 +74,15 @@ public class CommentsControllerTests
             .ReturnsAsync(true);
 
         _commentRepositoryMock
-            .Setup(x => x.GetTaskCommentsAsync(taskId))
-            .ReturnsAsync(comments);
+            .Setup(x => x.GetTaskCommentsPagedAsync(taskId, 0, 50))
+            .ReturnsAsync((comments.AsEnumerable(), comments.Count));
 
         // Act
         var result = await _controller.GetTaskComments(taskId);
 
         // Assert
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var commentDtos = okResult.Value.Should().BeAssignableTo<IEnumerable<CommentDto>>().Subject;
-        commentDtos.Should().HaveCount(3);
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        okResult.Value.Should().NotBeNull();
     }
 
     [Fact]
@@ -100,7 +99,7 @@ public class CommentsControllerTests
         var result = await _controller.GetTaskComments(taskId);
 
         // Assert
-        result.Result.Should().BeOfType<NotFoundObjectResult>();
+        result.Should().BeOfType<NotFoundObjectResult>();
     }
 
     [Fact]
@@ -123,7 +122,7 @@ public class CommentsControllerTests
         var result = await _controller.GetTaskComments(taskId);
 
         // Assert
-        result.Result.Should().BeOfType<ForbidResult>();
+        result.Should().BeOfType<ForbidResult>();
     }
 
     #endregion

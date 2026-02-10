@@ -91,7 +91,21 @@ public class ProjectMemberRepository : IProjectMemberRepository
         var member = await _context.ProjectMembers
             .AsNoTracking()
             .FirstOrDefaultAsync(pm => pm.ProjectId == projectId && pm.UserId == userId);
-        
+
         return member?.Role;
+    }
+
+    public async Task<(IEnumerable<ProjectMember> Items, int TotalCount)> GetProjectMembersPagedAsync(Guid projectId, int skip, int take)
+    {
+        var query = _context.ProjectMembers
+            .AsNoTracking()
+            .Where(pm => pm.ProjectId == projectId)
+            .Include(pm => pm.User)
+            .OrderBy(pm => pm.JoinedAt);
+
+        var totalCount = await query.CountAsync();
+        var items = await query.Skip(skip).Take(take).ToListAsync();
+
+        return (items, totalCount);
     }
 }
