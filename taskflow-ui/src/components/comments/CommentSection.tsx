@@ -5,10 +5,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { commentsApi } from '@/lib/api/comments';
 import { Button } from '@/components/common/Button';
 import { TextArea } from '@/components/common/TextArea';
-import { Spinner } from '@/components/common/Spinner';
+import { CommentSkeleton } from '@/components/common/skeletons/CommentSkeleton';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { format } from 'date-fns';
 import { TrashIcon } from '@heroicons/react/24/outline';
+import { Comment, PaginatedResponse } from '@/lib/types';
+import toast from 'react-hot-toast';
 
 interface CommentSectionProps {
   taskId: string;
@@ -23,16 +25,42 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
   const queryClient = useQueryClient();
   const [newComment, setNewComment] = useState('');
 
-  const { data: comments, isLoading } = useQuery({
+  const { data: commentsData, isLoading } = useQuery({
     queryKey: ['comments', taskId],
     queryFn: () => commentsApi.getTaskComments(taskId),
   });
 
+  const comments = commentsData?.items || [];
+
   const addCommentMutation = useMutation({
     mutationFn: commentsApi.add,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['comments', taskId] });
+    onMutate: async (newCommentData) => {
+      await queryClient.cancelQueries({ queryKey: ['comments', taskId] });
+      const previous = queryClient.getQueryData<PaginatedResponse<Comment>>(['comments', taskId]);
+      const tempComment: Comment = {
+        id: `temp-${Date.now()}`,
+        taskId: newCommentData.taskId,
+        userId: user?.id || '',
+        userName: user?.fullName || 'You',
+        content: newCommentData.content,
+        createdAt: new Date().toISOString(),
+      };
+      queryClient.setQueryData<PaginatedResponse<Comment>>(['comments', taskId], (old) => {
+        if (!old) return old;
+        return { ...old, items: [...old.items, tempComment], totalCount: old.totalCount + 1 };
+      });
       setNewComment('');
+      return { previous };
+    },
+    onError: (error, _, context) => {
+      console.error('Failed to add comment:', error);
+      if (context?.previous) {
+        queryClient.setQueryData(['comments', taskId], context.previous);
+      }
+      toast.error('Failed to add comment');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['comments', taskId] });
     },
   });
 
@@ -68,13 +96,13 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
   };
 
   if (isLoading) {
-    return <Spinner />;
+    return <CommentSkeleton />;
   }
 
   return (
     <div className="space-y-4">
       <h4 className="font-medium text-gray-900">
-        Comments ({comments?.length || 0})
+        Comments ({comments.length})
       </h4>
 
       {/* Add Comment */}
@@ -97,7 +125,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
 
       {/* Comments List */}
       <div className="space-y-3">
-        {comments?.map((comment) => (
+        {comments.map((comment) => (
           <div
             key={comment.id}
             className="bg-gray-50 rounded-lg p-4 relative group"
@@ -124,7 +152,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
           </div>
         ))}
 
-        {comments?.length === 0 && (
+        {comments.length === 0 && (
           <p className="text-center text-gray-500 text-sm py-4">
             No comments yet. Be the first to comment!
           </p>

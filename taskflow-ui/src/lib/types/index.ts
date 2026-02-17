@@ -104,3 +104,11 @@ export interface AddCommentRequest {
   projectId: string;
   content: string;
 }
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  totalCount: number;
+  skip: number;
+  take: number;
+  hasMore: boolean;
+}

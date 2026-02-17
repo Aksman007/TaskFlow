@@ -27,7 +27,7 @@ export const useProjects = () => {
   });
 
   return {
-    projects: projects || [],
+    projects: projects?.items || [],
     isLoading,
     createProject: createProject.mutateAsync,
     deleteProject: deleteProject.mutateAsync,

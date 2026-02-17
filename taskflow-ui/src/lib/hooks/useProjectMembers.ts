@@ -47,7 +47,7 @@ export const useProjectMembers = (projectId: string) => {
   });
 
   return {
-    members: members || [],
+    members: members?.items || [],
     isLoading,
     error,
     addMember: (email: string, role: number) =>

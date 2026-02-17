@@ -3,14 +3,15 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tasksApi } from '../api/tasks';
-import { CreateTaskRequest, UpdateTaskRequest, Task } from '../types';
+import { CreateTaskRequest, UpdateTaskRequest, Task, PaginatedResponse } from '../types';
 import { useEffect } from 'react';
 import { signalRService } from '../services/signalr';
+import toast from 'react-hot-toast';
 
 export const useTasks = (projectId: string) => {
   const queryClient = useQueryClient();
 
-  const { data: tasks, isLoading, error } = useQuery({
+  const { data: tasksData, isLoading, error } = useQuery({
     queryKey: ['tasks', projectId],
     queryFn: () => {
       console.log('Fetching tasks for project:', projectId);
@@ -28,31 +29,32 @@ export const useTasks = (projectId: string) => {
 
     const handleTaskCreated = (task: Task) => {
       console.log('SignalR: Task created', task);
-      queryClient.setQueryData(['tasks', projectId], (old: Task[] = []) => {
-        // Avoid duplicates
-        const exists = old.some(t => t.id === task.id);
+      queryClient.setQueryData<PaginatedResponse<Task>>(['tasks', projectId], (old) => {
+        if (!old) return old;
+        const exists = old.items.some(t => t.id === task.id);
         if (exists) return old;
-        return [...old, task];
+        return { ...old, items: [...old.items, task], totalCount: old.totalCount + 1 };
       });
     };
 
     const handleTaskUpdated = (task: Task) => {
       console.log('SignalR: Task updated', task);
-      queryClient.setQueryData(['tasks', projectId], (old: Task[] = []) =>
-        old.map((t) => (t.id === task.id ? task : t))
-      );
+      queryClient.setQueryData<PaginatedResponse<Task>>(['tasks', projectId], (old) => {
+        if (!old) return old;
+        return { ...old, items: old.items.map((t) => (t.id === task.id ? task : t)) };
+      });
     };
 
     const handleTaskDeleted = (taskId: string) => {
       console.log('SignalR: Task deleted', taskId);
-      queryClient.setQueryData(['tasks', projectId], (old: Task[] = []) =>
-        old.filter((t) => t.id !== taskId)
-      );
+      queryClient.setQueryData<PaginatedResponse<Task>>(['tasks', projectId], (old) => {
+        if (!old) return old;
+        return { ...old, items: old.items.filter((t) => t.id !== taskId), totalCount: old.totalCount - 1 };
+      });
     };
 
     const handleTaskStatusChanged = (data: any) => {
       console.log('SignalR: Task status changed', data);
-      // Refetch to get updated task
       queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
     };
 
@@ -75,17 +77,35 @@ export const useTasks = (projectId: string) => {
       console.log('Creating task:', data);
       return tasksApi.create(data);
     },
-    onSuccess: (newTask) => {
-      console.log('Task created successfully:', newTask);
-      // Optimistically update the cache
-      queryClient.setQueryData(['tasks', projectId], (old: Task[] = []) => {
-        const exists = old.some(t => t.id === newTask.id);
-        if (exists) return old;
-        return [...old, newTask];
+    onMutate: async (newTaskData) => {
+      await queryClient.cancelQueries({ queryKey: ['tasks', projectId] });
+      const previous = queryClient.getQueryData<PaginatedResponse<Task>>(['tasks', projectId]);
+      const tempTask: Task = {
+        id: `temp-${Date.now()}`,
+        title: newTaskData.title,
+        description: newTaskData.description || '',
+        projectId: newTaskData.projectId,
+        assignedToId: newTaskData.assignedToId,
+        status: 0,
+        priority: newTaskData.priority,
+        createdAt: new Date().toISOString(),
+        dueDate: newTaskData.dueDate,
+      };
+      queryClient.setQueryData<PaginatedResponse<Task>>(['tasks', projectId], (old) => {
+        if (!old) return old;
+        return { ...old, items: [...old.items, tempTask], totalCount: old.totalCount + 1 };
       });
+      return { previous };
     },
-    onError: (error) => {
+    onError: (error, _, context) => {
       console.error('Failed to create task:', error);
+      if (context?.previous) {
+        queryClient.setQueryData(['tasks', projectId], context.previous);
+      }
+      toast.error('Failed to create task');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
     },
   });
 
@@ -94,15 +114,27 @@ export const useTasks = (projectId: string) => {
       console.log('Updating task:', id, data);
       return tasksApi.update(id, data);
     },
-    onSuccess: (updatedTask) => {
-      console.log('Task updated successfully:', updatedTask);
-      // Optimistically update the cache
-      queryClient.setQueryData(['tasks', projectId], (old: Task[] = []) =>
-        old.map((t) => (t.id === updatedTask.id ? updatedTask : t))
-      );
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: ['tasks', projectId] });
+      const previous = queryClient.getQueryData<PaginatedResponse<Task>>(['tasks', projectId]);
+      queryClient.setQueryData<PaginatedResponse<Task>>(['tasks', projectId], (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          items: old.items.map((t) => (t.id === id ? { ...t, ...data } : t)),
+        };
+      });
+      return { previous };
     },
-    onError: (error) => {
+    onError: (error, _, context) => {
       console.error('Failed to update task:', error);
+      if (context?.previous) {
+        queryClient.setQueryData(['tasks', projectId], context.previous);
+      }
+      toast.error('Failed to update task');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
     },
   });
 
@@ -111,20 +143,29 @@ export const useTasks = (projectId: string) => {
       console.log('Deleting task:', taskId);
       return tasksApi.delete(taskId);
     },
-    onSuccess: (_, taskId) => {
-      console.log('Task deleted successfully:', taskId);
-      // Optimistically update the cache
-      queryClient.setQueryData(['tasks', projectId], (old: Task[] = []) =>
-        old.filter((t) => t.id !== taskId)
-      );
+    onMutate: async (taskId) => {
+      await queryClient.cancelQueries({ queryKey: ['tasks', projectId] });
+      const previous = queryClient.getQueryData<PaginatedResponse<Task>>(['tasks', projectId]);
+      queryClient.setQueryData<PaginatedResponse<Task>>(['tasks', projectId], (old) => {
+        if (!old) return old;
+        return { ...old, items: old.items.filter((t) => t.id !== taskId), totalCount: old.totalCount - 1 };
+      });
+      return { previous };
     },
-    onError: (error) => {
+    onError: (error, _, context) => {
       console.error('Failed to delete task:', error);
+      if (context?.previous) {
+        queryClient.setQueryData(['tasks', projectId], context.previous);
+      }
+      toast.error('Failed to delete task');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
     },
   });
 
   return {
-    tasks: tasks || [],
+    tasks: tasksData?.items || [],
     isLoading,
     error,
     createTask: createTask.mutateAsync,

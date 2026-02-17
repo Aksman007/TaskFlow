@@ -42,24 +42,17 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ projectId, tasks }) => {
       task,
     });
 
-    try {
-      await updateTask({
-        id: taskId,
-        data: {
-          title: task.title,
-          description: task.description || undefined,
-          status: newStatus,
-          priority: task.priority,
-          assignedToId: task.assignedToId || undefined,
-          dueDate: task.dueDate || undefined,
-        },
-      });
-      
-      console.log('Task status updated successfully');
-    } catch (error) {
-      console.error('Failed to update task status:', error);
-      alert('Failed to update task status');
-    }
+    await updateTask({
+      id: taskId,
+      data: {
+        title: task.title,
+        description: task.description || undefined,
+        status: newStatus,
+        priority: task.priority,
+        assignedToId: task.assignedToId || undefined,
+        dueDate: task.dueDate || undefined,
+      },
+    });
   };
 
   return (

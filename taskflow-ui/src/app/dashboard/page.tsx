@@ -6,21 +6,13 @@ import { useProjects } from '@/lib/hooks/useProjects';
 import { ProjectCard } from '@/components/projects/ProjectCard';
 import { CreateProjectModal } from '@/components/projects/CreateProjectModal';
 import { Button } from '@/components/common/Button';
-import { Spinner } from '@/components/common/Spinner';
+import { ProjectGridSkeleton } from '@/components/common/skeletons/ProjectGridSkeleton';
 import { PlusIcon } from '@heroicons/react/24/outline';
 
 export default function DashboardPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const { projects, isLoading } = useProjects();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Spinner size="xl" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -44,7 +36,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Projects Grid */}
-        {projects.items.length === 0 ? (
+        {isLoading ? (
+          <ProjectGridSkeleton />
+        ) : projects.length === 0 ? (
           <div className="text-center py-12">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
               <PlusIcon className="h-8 w-8 text-gray-400" />
@@ -64,7 +58,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.items.map((project) => (
+            {projects.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </div>

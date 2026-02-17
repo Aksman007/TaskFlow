@@ -1,9 +1,9 @@
 import apiClient from './client';
-import { Comment, AddCommentRequest } from '../types';
+import { Comment, AddCommentRequest, PaginatedResponse } from '../types';
 
 export const commentsApi = {
-  getTaskComments: async (taskId: string): Promise<Comment[]> => {
-    const response = await apiClient.get<Comment[]>(`/Comments/task/${taskId}`);
+  getTaskComments: async (taskId: string): Promise<PaginatedResponse<Comment>> => {
+    const response = await apiClient.get<PaginatedResponse<Comment>>(`/Comments/task/${taskId}`);
     return response.data;
   },
 

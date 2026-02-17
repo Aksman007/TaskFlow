@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
+import { authApi } from '@/lib/api/auth';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Spinner } from '@/components/common/Spinner';
+import { OfflineBanner } from '@/components/common/OfflineBanner';
 
 export default function DashboardLayout({
   children,
@@ -14,7 +16,7 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { isAuthenticated, _hasHydrated } = useAuthStore();
+  const { isAuthenticated, _hasHydrated, clearAuth } = useAuthStore();
 
   useEffect(() => {
     // Wait for Zustand to hydrate from localStorage before checking auth
@@ -24,6 +26,16 @@ export default function DashboardLayout({
       router.push('/login');
     }
   }, [router, isAuthenticated, _hasHydrated]);
+
+  // Validate session against server on mount
+  useEffect(() => {
+    if (!_hasHydrated || !isAuthenticated) return;
+
+    authApi.getCurrentUser().catch(() => {
+      clearAuth();
+      router.push('/login');
+    });
+  }, [_hasHydrated, isAuthenticated, clearAuth, router]);
 
   // Show spinner while Zustand is hydrating from localStorage
   if (!_hasHydrated) {
@@ -55,6 +67,7 @@ export default function DashboardLayout({
           {children}
         </main>
       </div>
+      <OfflineBanner />
     </div>
   );
 }

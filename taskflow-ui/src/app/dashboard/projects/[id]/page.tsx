@@ -7,7 +7,8 @@ import { useProject } from '@/lib/hooks/useProjects';
 import { useTasks } from '@/lib/hooks/useTasks';
 import { useSignalR } from '@/lib/hooks/useSignalR';
 import { TaskBoard } from '@/components/tasks/TaskBoard';
-import { Spinner } from '@/components/common/Spinner';
+import { TaskBoardSkeleton } from '@/components/common/skeletons/TaskBoardSkeleton';
+import { Skeleton } from '@/components/common/Skeleton';
 import { Button } from '@/components/common/Button';
 import { ArrowLeftIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 
@@ -26,9 +27,17 @@ export default function ProjectPage({ params }: PageProps) {
 
   if (projectLoading || tasksLoading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Spinner size="xl" />
-        <p className="ml-4 text-gray-600">Loading project...</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <Skeleton className="h-8 w-32 mb-4" />
+          <Skeleton className="h-10 w-64 mb-2" />
+          <Skeleton className="h-5 w-96 mb-4" />
+          <div className="flex gap-4">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+        </div>
+        <TaskBoardSkeleton />
       </div>
     );
   }

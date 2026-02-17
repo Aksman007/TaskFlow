@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import apiClient from './client';
-import { Task, CreateTaskRequest, UpdateTaskRequest } from '../types';
+import { Task, CreateTaskRequest, UpdateTaskRequest, PaginatedResponse } from '../types';
 
 export const tasksApi = {
-  getProjectTasks: async (projectId: string): Promise<Task[]> => {
+  getProjectTasks: async (projectId: string): Promise<PaginatedResponse<Task>> => {
     console.log('API: Fetching tasks for project:', projectId);
     try {
-      const response = await apiClient.get<Task[]>(`/Tasks/project/${projectId}`);
-      console.log('API: Tasks fetched:', response.data.length, 'tasks');
+      const response = await apiClient.get<PaginatedResponse<Task>>(`/Tasks/project/${projectId}`);
+      console.log('API: Tasks fetched:', response.data.items.length, 'tasks');
       return response.data;
     } catch (error: any) {
       console.error('API: Error fetching tasks:', {

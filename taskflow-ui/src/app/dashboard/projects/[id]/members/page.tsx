@@ -7,7 +7,7 @@ import { useProject } from '@/lib/hooks/useProjects';
 import { useProjectMembers } from '@/lib/hooks/useProjectMembers';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
-import { Spinner } from '@/components/common/Spinner';
+import { MemberListSkeleton } from '@/components/common/skeletons/MemberListSkeleton';
 import { Modal } from '@/components/common/Modal';
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { ProjectRole } from '@/lib/types';
@@ -32,8 +32,8 @@ export default function ProjectMembersPage({ params }: PageProps) {
 
   if (projectLoading || membersLoading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Spinner size="xl" />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <MemberListSkeleton />
       </div>
     );
   }

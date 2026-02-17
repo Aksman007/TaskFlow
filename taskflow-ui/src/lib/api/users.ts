@@ -14,8 +14,8 @@ export const usersApi = {
   },
 
   getProjectMembers: async (projectId: string): Promise<User[]> => {
-    // Use projectsApi instead
-    return projectsApi.getMembers(projectId);
+    const result = await projectsApi.getMembers(projectId);
+    return result.items;
   },
 
   updateProfile: async (data: { fullName: string }): Promise<User> => {

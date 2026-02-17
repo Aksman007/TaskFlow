@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import apiClient from './client';
-import { Project, CreateProjectRequest } from '../types';
+import { Project, CreateProjectRequest, PaginatedResponse } from '../types';
 
 export const projectsApi = {
-  getAll: async (): Promise<Project[]> => {
+  getAll: async (): Promise<PaginatedResponse<Project>> => {
     console.log('Fetching all projects...');
-    const response = await apiClient.get<Project[]>('/Projects');
+    const response = await apiClient.get<PaginatedResponse<Project>>('/Projects');
     console.log('Projects fetched:', response.data);
     return response.data;
   },
@@ -34,9 +34,9 @@ export const projectsApi = {
   },
 
   // Member management
-  getMembers: async (projectId: string): Promise<any[]> => {
+  getMembers: async (projectId: string): Promise<PaginatedResponse<any>> => {
     console.log('Fetching project members:', projectId);
-    const response = await apiClient.get(`/Projects/${projectId}/members`);
+    const response = await apiClient.get<PaginatedResponse<any>>(`/Projects/${projectId}/members`);
     console.log('Members fetched:', response.data);
     return response.data;
   },
