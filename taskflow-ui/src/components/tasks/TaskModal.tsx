@@ -147,7 +147,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             variant="ghost"
             size="sm"
             onClick={handleDelete}
-            className="gap-2 text-red-600 hover:bg-red-50"
+            className="gap-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
           >
             <TrashIcon className="h-4 w-4" />
             Delete
@@ -156,8 +156,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
         {/* Description */}
         <div>
-          <h4 className="font-medium text-gray-900 mb-2">Description</h4>
-          <p className="text-gray-600">
+          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Description</h4>
+          <p className="text-gray-600 dark:text-gray-400">
             {task.description || 'No description provided'}
           </p>
         </div>
@@ -201,26 +201,26 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         </div>
 
         {/* Metadata */}
-        <div className="border-t border-gray-200 pt-4 space-y-2 text-sm">
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2 text-sm">
           {task.assignedToName && (
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               <span className="font-medium">Assigned to:</span> {task.assignedToName}
             </p>
           )}
           {task.dueDate && (
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               <span className="font-medium">Due date:</span>{' '}
               {format(new Date(task.dueDate), 'PPP')}
             </p>
           )}
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             <span className="font-medium">Created:</span>{' '}
             {format(new Date(task.createdAt), 'PPP')}
           </p>
         </div>
 
         {/* Comments Section */}
-        <div className="border-t border-gray-200 pt-6">
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
           <CommentSection taskId={task.id} projectId={task.projectId} />
         </div>
       </div>

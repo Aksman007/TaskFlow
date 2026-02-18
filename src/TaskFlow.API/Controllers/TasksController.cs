@@ -146,9 +146,9 @@ public class TasksController : BaseController
             .Group($"project_{request.ProjectId}")
             .SendAsync("TaskCreated", taskDto);
 
-        _logger.LogInformation("Task created: {TaskId} by user {UserId}", task.Id, userId);
+        _logger.LogInformation("Task created: {TaskId} by user {UserId}", task?.Id, userId);
 
-        return CreatedAtAction(nameof(GetTask), new { id = task.Id }, taskDto);
+        return CreatedAtAction(nameof(GetTask), new { id = task?.Id }, taskDto);
     }
 
     [HttpPut("{id}")]
@@ -200,23 +200,26 @@ public class TasksController : BaseController
 
         // Notify via SignalR
         await _hubContext.Clients
-            .Group($"project_{task.ProjectId}")
+            .Group($"project_{task?.ProjectId}")
             .SendAsync("TaskUpdated", taskDto);
 
         if (statusChanged)
         {
             await _hubContext.Clients
-                .Group($"project_{task.ProjectId}")
+                .Group($"project_{task?.ProjectId}")
                 .SendAsync("TaskStatusChanged", new
                 {
-                    taskId = task.Id,
+                    taskId = task?.Id,
                     oldStatus = oldStatus.ToString(),
-                    newStatus = task.Status.ToString(),
+                    newStatus = task?.Status.ToString(),
                     task = taskDto
                 });
         }
 
-        _logger.LogInformation("Task updated: {TaskId} by user {UserId}", task.Id, userId);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Task updated: {TaskId} by user {UserId}", task?.Id, userId);
+        }
 
         return Ok(taskDto);
     }

@@ -2,7 +2,7 @@ import React from 'react';
 import { Skeleton } from '../Skeleton';
 
 const TaskCardSkeleton: React.FC = () => (
-  <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+  <div className="bg-white rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-4 shadow-sm">
     <Skeleton className="h-4 w-3/4 mb-2" />
     <Skeleton className="h-3 w-full mb-3" />
     <div className="flex items-center justify-between">
@@ -28,8 +28,8 @@ const ColumnSkeleton: React.FC<{ color: string; count: number }> = ({ color, cou
 
 export const TaskBoardSkeleton: React.FC = () => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <ColumnSkeleton color="bg-gray-100" count={3} />
-    <ColumnSkeleton color="bg-blue-100" count={2} />
-    <ColumnSkeleton color="bg-green-100" count={2} />
+    <ColumnSkeleton color="bg-gray-100 dark:bg-gray-800" count={3} />
+    <ColumnSkeleton color="bg-blue-100 dark:bg-blue-900/30" count={2} />
+    <ColumnSkeleton color="bg-green-100 dark:bg-green-900/30" count={2} />
   </div>
 );

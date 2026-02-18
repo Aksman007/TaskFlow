@@ -46,13 +46,13 @@ export default function ProjectPage({ params }: PageProps) {
     console.error('Project error details:', projectError);
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           Error loading project
         </h2>
         <p className="text-red-600 mb-4">
           {(projectError as any)?.response?.data?.error || (projectError as any)?.message || 'Unknown error'}
         </p>
-        <p className="text-sm text-gray-600 mb-4">Project ID: {id}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Project ID: {id}</p>
         <Button onClick={() => router.push('/dashboard')}>
           Back to Dashboard
         </Button>
@@ -63,10 +63,10 @@ export default function ProjectPage({ params }: PageProps) {
   if (!project) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           Project not found
         </h2>
-        <p className="text-gray-600 mb-4">Project ID: {id}</p>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">Project ID: {id}</p>
         <Button onClick={() => router.push('/dashboard')}>
           Back to Dashboard
         </Button>
@@ -89,9 +89,9 @@ export default function ProjectPage({ params }: PageProps) {
         
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-            <p className="text-gray-600 mt-2">{project.description}</p>
-            <div className="flex gap-4 mt-4 text-sm text-gray-600">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{project.name}</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">{project.description}</p>
+            <div className="flex gap-4 mt-4 text-sm text-gray-600 dark:text-gray-400">
               <span>{project.memberCount} members</span>
               <span>•</span>
               <span>{project.taskCount} tasks</span>

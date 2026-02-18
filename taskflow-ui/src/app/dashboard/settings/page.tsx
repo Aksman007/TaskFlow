@@ -10,7 +10,9 @@ import { z } from 'zod';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { Spinner } from '@/components/common/Spinner';
-import { UserCircleIcon } from '@heroicons/react/24/outline';
+import { UserCircleIcon, SunIcon, MoonIcon, ComputerDesktopIcon } from '@heroicons/react/24/outline';
+import { useThemeStore } from '@/lib/store/themeStore';
+import clsx from 'clsx';
 
 const settingsSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
@@ -54,6 +56,7 @@ export default function SettingsPage() {
   });
 
   const { user, clearAuth } = useAuthStore();
+  const { theme, setTheme } = useThemeStore();
 
   useEffect(() => {
     // Load user data from Zustand store
@@ -107,14 +110,14 @@ export default function SettingsPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-600 mt-2">Manage your account settings and preferences</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your account settings and preferences</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Sidebar */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
             <nav className="space-y-1">
                 <a
                 href="#profile"
@@ -129,15 +132,15 @@ export default function SettingsPage() {
 
         {/* Main Content */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Profile Information</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Profile Information</h2>
 
             {message && (
               <div
                 className={`mb-6 px-4 py-3 rounded-lg ${
                   message.type === 'success'
-                    ? 'bg-green-50 border border-green-200 text-green-700'
-                    : 'bg-red-50 border border-red-200 text-red-700'
+                    ? 'bg-green-50 border border-green-200 text-green-700 dark:bg-green-900/30 dark:border-green-800 dark:text-green-400'
+                    : 'bg-red-50 border border-red-200 text-red-700 dark:bg-red-900/30 dark:border-red-800 dark:text-red-400'
                 }`}
               >
                 {message.text}
@@ -163,8 +166,8 @@ export default function SettingsPage() {
                 helperText="Email cannot be changed"
               />
 
-              <div className="border-t border-gray-200 pt-6 mt-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Change Password</h3>
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Change Password</h3>
                 <div className="space-y-4">
                   <Input
                     label="Current Password"
@@ -209,6 +212,33 @@ export default function SettingsPage() {
                 </Button>
               </div>
             </form>
+          </div>
+
+          {/* Appearance Section */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Appearance</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">Choose your preferred theme</p>
+            <div className="grid grid-cols-3 gap-3">
+              {([
+                { value: 'light' as const, label: 'Light', icon: SunIcon },
+                { value: 'dark' as const, label: 'Dark', icon: MoonIcon },
+                { value: 'system' as const, label: 'System', icon: ComputerDesktopIcon },
+              ]).map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setTheme(option.value)}
+                  className={clsx(
+                    'flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors',
+                    theme === option.value
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300'
+                  )}
+                >
+                  <option.icon className="h-6 w-6" />
+                  <span className="text-sm font-medium">{option.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

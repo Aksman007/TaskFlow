@@ -41,7 +41,7 @@ export default function ProjectMembersPage({ params }: PageProps) {
   if (!project) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           Project not found
         </h2>
         <Button onClick={() => router.push('/dashboard')}>
@@ -66,8 +66,8 @@ export default function ProjectMembersPage({ params }: PageProps) {
 
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Team Members</h1>
-            <p className="text-gray-600 mt-2">{project.name}</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Team Members</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">{project.name}</p>
           </div>
           <Button
             variant="primary"
@@ -81,11 +81,11 @@ export default function ProjectMembersPage({ params }: PageProps) {
       </div>
 
       {/* Members List */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="divide-y divide-gray-200">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="divide-y divide-gray-200 dark:divide-gray-700">
           {members.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-600 mb-4">No team members yet</p>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">No team members yet</p>
               <Button
                 variant="primary"
                 onClick={() => setIsAddModalOpen(true)}
@@ -97,11 +97,11 @@ export default function ProjectMembersPage({ params }: PageProps) {
             members.map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between p-4 hover:bg-gray-50"
+                className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">{member.userName}</h3>
-                  <p className="text-sm text-gray-600">{member.userEmail}</p>
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">{member.userName}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{member.userEmail}</p>
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -110,7 +110,7 @@ export default function ProjectMembersPage({ params }: PageProps) {
                     onChange={(e) =>
                       updateMemberRole(member.id, parseInt(e.target.value))
                     }
-                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     <option value={ProjectRole.Viewer}>Viewer</option>
                     <option value={ProjectRole.Member}>Member</option>
@@ -128,7 +128,7 @@ export default function ProjectMembersPage({ params }: PageProps) {
                           removeMember(member.id);
                         }
                       }}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                     >
                       <TrashIcon className="h-5 w-5" />
                     </button>
@@ -206,7 +206,7 @@ function AddMemberModal({
     <Modal isOpen={isOpen} onClose={onClose} title="Add Team Member">
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          <div className="bg-red-50 border border-red-200 text-red-700 dark:bg-red-900/30 dark:border-red-800 dark:text-red-400 px-4 py-3 rounded-lg">
             {error}
           </div>
         )}
@@ -221,13 +221,13 @@ function AddMemberModal({
         />
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             Role
           </label>
           <select
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value={ProjectRole.Viewer}>Viewer - Can view only</option>
             <option value={ProjectRole.Member}>Member - Can create and edit tasks</option>

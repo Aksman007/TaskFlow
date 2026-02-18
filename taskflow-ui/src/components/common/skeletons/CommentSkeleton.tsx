@@ -2,7 +2,7 @@ import React from 'react';
 import { Skeleton } from '../Skeleton';
 
 const CommentItemSkeleton: React.FC = () => (
-  <div className="bg-gray-50 rounded-lg p-4">
+  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
     <div className="flex items-start justify-between mb-2">
       <div>
         <Skeleton className="h-4 w-24 mb-1" />

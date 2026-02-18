@@ -19,9 +19,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
   const [isDragging, setIsDragging] = React.useState(false);
 
   const priorityColors = {
-    [TaskPriority.Low]: 'text-green-600 bg-green-50',
-    [TaskPriority.Medium]: 'text-yellow-600 bg-yellow-50',
-    [TaskPriority.High]: 'text-red-600 bg-red-50',
+    [TaskPriority.Low]: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30',
+    [TaskPriority.Medium]: 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30',
+    [TaskPriority.High]: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30',
   };
 
   const priorityLabels = {
@@ -55,7 +55,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
     >
       {/* Priority & Title */}
       <div className="flex items-start justify-between mb-2">
-        <h4 className="font-medium text-gray-900 flex-1 line-clamp-2">
+        <h4 className="font-medium text-gray-900 dark:text-gray-100 flex-1 line-clamp-2">
           {task.title}
         </h4>
         <span
@@ -71,13 +71,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
 
       {/* Description */}
       {task.description && (
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
           {task.description}
         </p>
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between text-xs text-gray-500">
+      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
         {task.assignedToName && (
           <div className="flex items-center gap-1">
             <UserCircleIcon className="h-4 w-4" />

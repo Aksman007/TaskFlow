@@ -74,8 +74,8 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
     >
       {/* Column Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-gray-900">{title}</h3>
-        <span className="bg-white px-2 py-1 rounded-full text-sm font-medium text-gray-700">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
+        <span className="bg-white dark:bg-gray-700 px-2 py-1 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300">
           {tasks.length}
         </span>
       </div>
@@ -94,7 +94,7 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
         {status === TaskStatus.Todo && (
           <button
             onClick={onCreateTask}
-            className="w-full p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-400 hover:bg-white transition-all flex items-center justify-center gap-2 text-gray-600 hover:text-primary-600"
+            className="w-full p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-white dark:hover:bg-gray-800 transition-all flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400 hover:text-primary-600"
           >
             <PlusIcon className="h-5 w-5" />
             <span className="font-medium">Add Task</span>

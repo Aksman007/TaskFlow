@@ -18,9 +18,9 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ projectId, tasks }) => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const columns: { status: TaskStatus; title: string; color: string }[] = [
-    { status: TaskStatus.Todo, title: 'To Do', color: 'bg-gray-100' },
-    { status: TaskStatus.InProgress, title: 'In Progress', color: 'bg-blue-100' },
-    { status: TaskStatus.Done, title: 'Done', color: 'bg-green-100' },
+    { status: TaskStatus.Todo, title: 'To Do', color: 'bg-gray-100 dark:bg-gray-800' },
+    { status: TaskStatus.InProgress, title: 'In Progress', color: 'bg-blue-100 dark:bg-blue-900/30' },
+    { status: TaskStatus.Done, title: 'Done', color: 'bg-green-100 dark:bg-green-900/30' },
   ];
 
   const getTasksByStatus = (status: TaskStatus) => {

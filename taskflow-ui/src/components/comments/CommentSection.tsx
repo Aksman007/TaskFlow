@@ -101,7 +101,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
 
   return (
     <div className="space-y-4">
-      <h4 className="font-medium text-gray-900">
+      <h4 className="font-medium text-gray-900 dark:text-gray-100">
         Comments ({comments.length})
       </h4>
 
@@ -128,32 +128,32 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
         {comments.map((comment) => (
           <div
             key={comment.id}
-            className="bg-gray-50 rounded-lg p-4 relative group"
+            className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 relative group"
           >
             <div className="flex items-start justify-between mb-2">
               <div>
-                <p className="font-medium text-sm text-gray-900">
+                <p className="font-medium text-sm text-gray-900 dark:text-gray-100">
                   {comment.userName}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {format(new Date(comment.createdAt), 'PPp')}
                 </p>
               </div>
               {user?.id === comment.userId && (
                 <button
                   onClick={() => handleDeleteComment(comment.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 rounded text-red-600"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded text-red-600"
                 >
                   <TrashIcon className="h-4 w-4" />
                 </button>
               )}
             </div>
-            <p className="text-gray-700 text-sm">{comment.content}</p>
+            <p className="text-gray-700 dark:text-gray-300 text-sm">{comment.content}</p>
           </div>
         ))}
 
         {comments.length === 0 && (
-          <p className="text-center text-gray-500 text-sm py-4">
+          <p className="text-center text-gray-500 dark:text-gray-400 text-sm py-4">
             No comments yet. Be the first to comment!
           </p>
         )}

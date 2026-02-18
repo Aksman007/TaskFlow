@@ -173,7 +173,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         />
 
         {loadingMembers && (
-          <p className="text-sm text-gray-500">Loading team members...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading team members...</p>
         )}
 
         <div className="flex justify-end gap-3">

@@ -37,9 +37,9 @@ public class ProjectMemberFilter : IAsyncActionFilter
 
         // Try to get projectId from route parameters
         Guid projectId = Guid.Empty;
-        if (context.ActionArguments.ContainsKey("projectId"))
+        if (context.ActionArguments.ContainsKey("projectId") && context.ActionArguments["projectId"] is not null)
         {
-            projectId = (Guid)context.ActionArguments["projectId"];
+            projectId = (Guid)context.ActionArguments["projectId"]!;
         }
         else if (context.HttpContext.Request.RouteValues.ContainsKey("projectId"))
         {

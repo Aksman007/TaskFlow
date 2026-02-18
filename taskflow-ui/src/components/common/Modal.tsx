@@ -56,19 +56,19 @@ export const Modal: React.FC<ModalProps> = ({
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel
-                className={`w-full ${sizes[size]} transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all`}
+                className={`w-full ${sizes[size]} transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-2xl transition-all`}
               >
-                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                   <Dialog.Title
                     as="h3"
-                    className="text-xl font-semibold text-gray-900"
+                    className="text-xl font-semibold text-gray-900 dark:text-gray-100"
                   >
                     {title}
                   </Dialog.Title>
                   {showCloseButton && (
                     <button
                       onClick={onClose}
-                      className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
+                      className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-700"
                     >
                       <XMarkIcon className="h-6 w-6" />
                     </button>

@@ -14,26 +14,41 @@ class SignalRService {
 
     console.log('Connecting to SignalR hub:', hubUrl);
 
+    // Fetch the token from our server-side API route, which can read
+    // the httpOnly cookie that browser JS cannot access directly.
+    let token = '';
+    try {
+      const res = await fetch('/api/auth/token');
+      if (res.ok) {
+        const data = await res.json();
+        token = data.token ?? '';
+      }
+    } catch {
+      // If token fetch fails we'll still attempt connection;
+      // the hub will reject with 401 and the retry loop will handle it.
+    }
+
     this.connection = new signalR.HubConnectionBuilder()
-      .withUrl(hubUrl, {
-        // Use cookie-based auth — no access token factory needed
-        withCredentials: true,
+      .withUrl(`${hubUrl}?access_token=${encodeURIComponent(token)}`, {
+        // skipNegotiation + WebSockets-only bypasses the problematic HTTP negotiate
+        // step. Using accessTokenFactory with withCredentials on a cross-origin request
+        // causes the browser to reject the CORS preflight. Instead, we embed the token
+        // directly in the WebSocket upgrade URL — exactly what the backend's
+        // OnMessageReceived handler reads from context.Request.Query["access_token"].
+        skipNegotiation: true,
+        transport: signalR.HttpTransportType.WebSockets,
       })
-      .withAutomaticReconnect()
-      .configureLogging(signalR.LogLevel.Information)
+      // No withAutomaticReconnect — we skip negotiation so the token is baked into
+      // the URL at build time. The useSignalR hook's retry loop handles reconnection
+      // by calling connect() again, which fetches a fresh token each time.
+      .configureLogging(signalR.LogLevel.Warning)
       .build();
 
-    // Set up lifecycle handlers
+    // Reset connection to null on close so the next connect() call
+    // rebuilds it with a fresh token rather than reusing the stale URL.
     this.connection.onclose((error) => {
       console.log('SignalR connection closed', error);
-    });
-
-    this.connection.onreconnecting((error) => {
-      console.log('SignalR reconnecting...', error);
-    });
-
-    this.connection.onreconnected((connectionId) => {
-      console.log('SignalR reconnected with connection ID:', connectionId);
+      this.connection = null;
     });
 
     try {

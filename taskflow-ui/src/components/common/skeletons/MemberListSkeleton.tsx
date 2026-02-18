@@ -2,7 +2,7 @@ import React from 'react';
 import { Skeleton } from '../Skeleton';
 
 const MemberRowSkeleton: React.FC = () => (
-  <div className="flex items-center justify-between py-4 border-b border-gray-100">
+  <div className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-gray-700">
     <div className="flex items-center gap-3">
       <Skeleton className="h-10 w-10 rounded-full" />
       <div>
@@ -15,7 +15,7 @@ const MemberRowSkeleton: React.FC = () => (
 );
 
 export const MemberListSkeleton: React.FC = () => (
-  <div className="bg-white rounded-lg border border-gray-200 p-6">
+  <div className="bg-white rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-6">
     <Skeleton className="h-6 w-40 mb-6" />
     {Array.from({ length: 5 }).map((_, i) => (
       <MemberRowSkeleton key={i} />
