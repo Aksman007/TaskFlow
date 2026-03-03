@@ -37,17 +37,8 @@ export default function DashboardLayout({
     });
   }, [_hasHydrated, isAuthenticated, clearAuth, router]);
 
-  // Show spinner while Zustand is hydrating from localStorage
-  if (!_hasHydrated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Spinner size="xl" />
-      </div>
-    );
-  }
-
-  // Don't render dashboard content if not authenticated
-  if (!isAuthenticated) {
+  // Don't render dashboard content if not authenticated or Zustand hasn't hydrated yet
+  if (!isAuthenticated || !_hasHydrated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Spinner size="xl" />
